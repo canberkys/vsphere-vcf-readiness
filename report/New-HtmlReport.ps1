@@ -54,8 +54,18 @@ function Build-HtmlContent {
 
     # Helper: convert URLs in text to clickable links
     function ConvertTo-LinkedHtml([string]$text) {
-        $encoded = [System.Web.HttpUtility]::HtmlEncode($text)
-        $encoded -replace '(https?://[^\s&lt;]+)', '<a href="$1" target="_blank" style="color:var(--accent-blue)">$1</a>'
+        # Extract URL before encoding, then rebuild with link
+        if ($text -match '(https?://\S+)') {
+            $url = $Matches[1]
+            $before = $text.Substring(0, $text.IndexOf($url))
+            $after = $text.Substring($text.IndexOf($url) + $url.Length)
+            $encodedBefore = [System.Web.HttpUtility]::HtmlEncode($before)
+            $encodedAfter = [System.Web.HttpUtility]::HtmlEncode($after)
+            $shortUrl = $url -replace 'https?://(knowledge\.broadcom\.com/external/article/|)', ''
+            "${encodedBefore}<a href=`"${url}`" target=`"_blank`" style=`"color:var(--accent-blue)`">KB ${shortUrl}</a>${encodedAfter}"
+        } else {
+            [System.Web.HttpUtility]::HtmlEncode($text)
+        }
     }
 
     $score    = $R.Score
