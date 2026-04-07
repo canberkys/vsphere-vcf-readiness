@@ -82,6 +82,7 @@ Remove-Item ~/.vcf-readiness-cred.xml
 | `vcfAutomationRequired` | Include automation checks | `true` / `false` |
 | `checkHcl` | Query vSAN HCL online | `true` / `false` |
 | `excludeHosts` | Hosts to skip | `["witness01.lab.local"]` |
+| `excludeDatastorePatterns` | Datastore name patterns to skip (wildcard) | `["x_localdisk_*"]` |
 
 ## Check Categories
 
@@ -135,6 +136,15 @@ All thresholds are driven by version-specific requirement matrices (`checks/requ
 - [VCF 9.0 Deployment Planning](https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0)
 
 ## Changelog
+
+### v0.5.1
+- **feat:** "+N more" is now clickable — expands to show all objects, click again to collapse
+- **feat:** Score ring animates on page load (counter + ring fill)
+- **feat:** Filter buttons color-coded per status (red/amber/green when active)
+- **feat:** Host cards: status dot indicator, CPU tooltip on hover, cores/sockets info
+- **feat:** Roadmap cards show affected object count badge
+- **fix:** Long hostnames no longer overflow table columns (`word-break` + `table-layout:fixed`)
+- **fix:** try/catch inside hashtable literal caused PowerShell parse error in host inventory builder
 
 ### v0.5.0
 - **fix:** Datastore threshold null bug — all datastores showed as BLOCK (even 0.3% usage) when Requirements matrix wasn't loaded. Now uses safe defaults (85%/75%)
