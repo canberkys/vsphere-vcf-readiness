@@ -423,7 +423,10 @@ foreach ($result in $allResults) {
     $totalPenalty += $penalty
 }
 
-$finalScore = [math]::Max(0, $baseScore + $totalPenalty)
+$penaltyScore = [math]::Max(0, $baseScore + $totalPenalty)
+
+# Overall score = weighted average of category scores (more representative than raw penalty)
+# Falls back to penalty score if no categories
 
 # ── Category Scores ──
 $categories = $allResults | Select-Object -ExpandProperty Category -Unique
@@ -441,6 +444,14 @@ foreach ($cat in $categories) {
         }
     }
     $categoryScores[$cat] = [math]::Max(0, 100 + $catPenalty)
+}
+
+# Overall score = average of category scores (capped by blocker presence)
+if ($categoryScores.Count -gt 0) {
+    $avgCatScore = [math]::Round(($categoryScores.Values | Measure-Object -Average).Average, 0)
+    $finalScore = $avgCatScore
+} else {
+    $finalScore = $penaltyScore
 }
 
 # ── Summary Counts ──
