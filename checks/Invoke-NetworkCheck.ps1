@@ -13,10 +13,10 @@ function Invoke-NetworkCheck {
     #>
     [CmdletBinding()]
     param(
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory = $false)]
         [psobject]$Config,
 
-        [Parameter(Mandatory)]
+        [Parameter(Mandatory = $false)]
         [psobject]$Requirements,
 
         [Parameter()]

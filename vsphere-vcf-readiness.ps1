@@ -164,6 +164,10 @@ if (-not (Test-Path $reqFile)) {
     return
 }
 $requirements = Get-Content $reqFile -Raw | ConvertFrom-Json
+if (-not $requirements) {
+    Write-Error "Failed to parse requirements matrix: $reqFile"
+    return
+}
 Write-Host "[*] Requirements loaded: VCF $($requirements.vcfVersion)" -ForegroundColor Green
 
 # ── Load Check Modules ──
