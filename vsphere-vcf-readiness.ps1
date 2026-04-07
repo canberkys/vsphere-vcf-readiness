@@ -93,6 +93,20 @@ if (-not (Test-Path $ConfigFile)) {
     return
 }
 $config = Get-Content $ConfigFile -Raw | ConvertFrom-Json
+
+# ── Validate Config ──
+$validVcfVersions = @("9.0.0", "9.0.1")
+$validStorageTypes = @("vsan-osa", "vsan-esa", "fc-vmfs", "nfs")
+
+if ($config.targetVcfVersion -and $config.targetVcfVersion -notin $validVcfVersions) {
+    Write-Warning "targetVcfVersion '$($config.targetVcfVersion)' is not recognized. Valid values: $($validVcfVersions -join ', '). Defaulting to 9.0.1."
+    $config.targetVcfVersion = "9.0.1"
+}
+if ($config.storageType -and $config.storageType -notin $validStorageTypes) {
+    Write-Warning "storageType '$($config.storageType)' is not recognized. Valid values: $($validStorageTypes -join ', '). Defaulting to vsan-esa."
+    $config.storageType = "vsan-esa"
+}
+
 Write-Host "[*] Config loaded: VCF target $($config.targetVcfVersion), storage: $($config.storageType)" -ForegroundColor Green
 
 # ══════════════════════════════════════════════════════════════
