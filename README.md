@@ -136,6 +136,23 @@ All thresholds are driven by version-specific requirement matrices (`checks/requ
 
 ## Changelog
 
+### v0.5.0
+- **fix:** Datastore threshold null bug — all datastores showed as BLOCK (even 0.3% usage) when Requirements matrix wasn't loaded. Now uses safe defaults (85%/75%)
+- **fix:** All 5 check modules now use null-safe defaults when Requirements is null
+- **fix:** Host Inventory now populated in real mode (was hardcoded empty)
+- **feat:** Report results grouped by CheckName+Status — 24 identical CPU rows become 1 row with "(8x)" badge
+- **feat:** PASS/INFO rows hidden by default with "Show X passed" toggle
+- **feat:** Filter buttons per category table: [All] [Block] [Warn] [Pass]
+- **feat:** AffectedObjects >5 items collapsed with "+N more" label
+- **feat:** `excludeDatastorePatterns` in config.json to skip local/scratch disks
+
+### v0.4.2
+- **feat:** Interactive vCenter prompt shows config default: `(Enter for vcsa.lab.local)`
+- **feat:** New/changed vCenter address can be saved back to config.json
+
+### v0.4.1
+- **fix:** `[CmdletBinding]` + `param()` moved before PS 5.1 guard — PowerShell requires these as first executable statements after help block
+
 ### v0.4.0
 - **feat:** Credential auto-management — saved credential file (`~/.vcf-readiness-cred.xml`) with interactive save/load prompts, no external modules needed
 - **feat:** PS 5.1 auto-relaunch — if opened with Windows PowerShell, script relaunches itself in pwsh
