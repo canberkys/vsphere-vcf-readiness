@@ -170,7 +170,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
   <div class="container header-inner">
     <div>
       <h1><span>VCF</span> Readiness Report</h1>
-      <div style="color:var(--text-secondary);font-size:13px;margin-top:4px;">vSphere to VCF 9.0.1 Migration Assessment &mdash; EXAMPLE / MOCK DATA</div>
+      <div style="color:var(--text-secondary);font-size:13px;margin-top:4px;">vSphere to VCF 9.0.1 Migration Assessment - EXAMPLE / MOCK DATA</div>
     </div>
     <div class="header-meta">
       <div>vcsa-prod.acme-corp.local</div>
@@ -200,8 +200,8 @@ tr:hover td{background:rgba(88,166,255,.04)}
 <div class="container">
   <div class="section-title"><span class="icon">&#9881;</span> Overview</div>
   <div class="legend">
-    <div class="legend-item"><span class="sev sev-req" style="font-size:10px;display:inline-block">REQ</span> VCF Requirement &mdash; official gate, must resolve before migration</div>
-    <div class="legend-item"><span class="sev sev-bp" style="font-size:10px;display:inline-block">BP</span> Best Practice &mdash; advisory, strongly recommended</div>
+    <div class="legend-item"><span class="sev sev-req" style="font-size:10px;display:inline-block">REQ</span> VCF Requirement - official gate, must resolve before migration</div>
+    <div class="legend-item"><span class="sev sev-bp" style="font-size:10px;display:inline-block">BP</span> Best Practice - advisory, strongly recommended</div>
     <div class="legend-item"><span class="chip chip-block" style="font-size:9px;padding:1px 6px">BLOCK</span> Migration stopper</div>
     <div class="legend-item"><span class="chip chip-warn" style="font-size:9px;padding:1px 6px">WARN</span> Action needed</div>
     <div class="legend-item"><span class="chip chip-pass" style="font-size:9px;padding:1px 6px">PASS</span> OK</div>
@@ -290,7 +290,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">Minimum Host Count</td>
         <td class="td-desc">Host count (16) meets minimum requirement of 3 for vSAN ESA cluster.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -298,7 +298,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr data-status="BLOCK">
         <td><span class="chip chip-block"><span class="sev sev-req">REQ</span> BLOCK</span></td>
         <td class="td-check">CPU Generation <span class="count-badge">(4x)</span></td>
-        <td class="td-desc">CPU (Intel Xeon E5-2680 v4) is Broadwell era &mdash; discontinued for VCF 9.x. ESXi installation is blocked on this hardware.</td>
+        <td class="td-desc">CPU (Intel Xeon E5-2680 v4) is Broadwell era - discontinued for VCF 9.x. ESXi installation is blocked on this hardware.</td>
         <td class="td-obj">
           <span class="obj-tag">esx-edge01.acme-corp.local</span>
           <span class="obj-tag">esx-edge02.acme-corp.local</span>
@@ -313,7 +313,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr data-status="WARN">
         <td><span class="chip chip-warn"><span class="sev sev-bp">BP</span> WARN</span></td>
         <td class="td-check">CPU Generation <span class="count-badge">(4x)</span></td>
-        <td class="td-desc">CPU (Intel Xeon Gold 6248R / Gold 5218) is Cascade Lake &mdash; deprecated for VCF 9.x. Fully supported including vSAN ESA but no longer recommended for new deployments.</td>
+        <td class="td-desc">CPU (Intel Xeon Gold 6248R / Gold 5218) is Cascade Lake - deprecated for VCF 9.x. Fully supported including vSAN ESA but no longer recommended for new deployments.</td>
         <td class="td-obj">
           <span class="obj-tag">esx-prod05.acme-corp.local</span>
           <span class="obj-tag">esx-prod06.acme-corp.local</span>
@@ -321,14 +321,14 @@ tr:hover td{background:rgba(88,166,255,.04)}
           <span class="obj-hidden" id="exp-2"><span class="obj-tag">esx-prod08.acme-corp.local</span></span>
           <span class="obj-toggle" onclick="toggleExpand(2)">+1 more</span>
         </td>
-        <td class="td-fix">Plan hardware refresh to Ice Lake+ in the next 12&ndash;18 months. Cascade Lake works with VCF 9.x today. See <a href="https://knowledge.broadcom.com/external/article/318697" target="_blank">KB 318697</a>.</td>
+        <td class="td-fix">Plan hardware refresh to Ice Lake+ in the next 12-18 months. Cascade Lake works with VCF 9.x today. See <a href="https://knowledge.broadcom.com/external/article/318697" target="_blank">KB 318697</a>.</td>
       </tr>
 
       <!-- PASS: Ice Lake CPUs - 6 hosts -->
       <tr class="row-pass" style="display:none" data-status="PASS">
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">CPU Generation <span class="count-badge">(6x)</span></td>
-        <td class="td-desc">CPUs (Gold 6338 / Gold 6348 / Platinum 8380) are Ice Lake &mdash; fully VCF 9.x compatible and on the HCL.</td>
+        <td class="td-desc">CPUs (Gold 6338 / Gold 6348 / Platinum 8380) are Ice Lake - fully VCF 9.x compatible and on the HCL.</td>
         <td class="td-obj">
           <span class="obj-tag">esx-prod01</span>
           <span class="obj-tag">esx-prod02</span>
@@ -347,7 +347,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr class="row-pass" style="display:none" data-status="PASS">
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">CPU Generation <span class="count-badge">(2x)</span></td>
-        <td class="td-desc">CPU (Intel Xeon Gold 6430) is Sapphire Rapids &mdash; fully VCF 9.x compatible, latest generation.</td>
+        <td class="td-desc">CPU (Intel Xeon Gold 6430) is Sapphire Rapids - fully VCF 9.x compatible, latest generation.</td>
         <td class="td-obj">
           <span class="obj-tag">esx-mgmt03.acme-corp.local</span>
           <span class="obj-tag">esx-mgmt04.acme-corp.local</span>
@@ -371,8 +371,8 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr class="row-pass" style="display:none" data-status="PASS">
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">Physical NIC Count <span class="count-badge">(14x)</span></td>
-        <td class="td-desc">14 hosts have 4 or more physical NICs &mdash; meets recommended configuration for traffic separation.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-desc">14 hosts have 4 or more physical NICs - meets recommended configuration for traffic separation.</td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -407,8 +407,8 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr class="row-pass" style="display:none" data-status="PASS">
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">RAM Capacity <span class="count-badge">(10x)</span></td>
-        <td class="td-desc">10 hosts have 512GB or more RAM &mdash; well above minimum. Prod-Cluster hosts range from 512&ndash;1024GB.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-desc">10 hosts have 512GB or more RAM - well above minimum. Prod-Cluster hosts range from 512-1024GB.</td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -458,7 +458,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr data-status="WARN">
         <td><span class="chip chip-warn"><span class="sev sev-bp">BP</span> WARN</span></td>
         <td class="td-check">Datastore Capacity Usage <span class="count-badge">(3x)</span></td>
-        <td class="td-desc">3 datastores are between 75&ndash;85% capacity. Approaching threshold &mdash; monitor closely and plan capacity expansion before migration window.</td>
+        <td class="td-desc">3 datastores are between 75-85% capacity. Approaching threshold - monitor closely and plan capacity expansion before migration window.</td>
         <td class="td-obj">
           <span class="obj-tag">vsanDS-MgmtCluster: 82%</span>
           <span class="obj-tag">NFS-Archive01: 79%</span>
@@ -471,8 +471,8 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr class="row-pass" style="display:none" data-status="PASS">
         <td><span class="chip chip-pass"><span class="sev sev-bp">BP</span> PASS</span></td>
         <td class="td-check">Datastore Capacity Usage <span class="count-badge">(12x)</span></td>
-        <td class="td-desc">12 datastore(s) below 75% &mdash; healthy capacity headroom. Range: 18%&ndash;68%.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-desc">12 datastore(s) below 75% - healthy capacity headroom. Range: 18%-68%.</td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -492,7 +492,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr data-status="WARN">
         <td><span class="chip chip-warn"><span class="sev sev-bp">BP</span> WARN</span></td>
         <td class="td-check">Snapshot Age Audit <span class="count-badge">(3x)</span></td>
-        <td class="td-desc">3 VMs have snapshots between 7&ndash;30 days old. Review before scheduling migration.</td>
+        <td class="td-desc">3 VMs have snapshots between 7-30 days old. Review before scheduling migration.</td>
         <td class="td-obj">
           <span class="obj-tag">vm-web-fe02 (14d, 22GB)</span>
           <span class="obj-tag">vm-devtest-01 (9d, 11GB)</span>
@@ -505,7 +505,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr data-status="WARN">
         <td><span class="chip chip-warn"><span class="sev sev-req">REQ</span> WARN</span></td>
         <td class="td-check">USB/SD Boot Device</td>
-        <td class="td-desc">1 host boots from USB device. VCF 9.x deprecates USB/SD boot &mdash; ESX-OSData partition requires a local disk of minimum 32GB (recommended 128GB+).</td>
+        <td class="td-desc">1 host boots from USB device. VCF 9.x deprecates USB/SD boot - ESX-OSData partition requires a local disk of minimum 32GB (recommended 128GB+).</td>
         <td class="td-obj">
           <span class="obj-tag">esx-mgmt02.acme-corp.local (USB:Kingston 32GB)</span>
         </td>
@@ -530,7 +530,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">vSAN Disk Format Version</td>
         <td class="td-desc">All vSAN disk groups are on format version 19+ (required for ESA migration path). No legacy OSA disk format upgrade needed.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -538,8 +538,8 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr data-status="INFO">
         <td><span class="chip chip-info"><span class="sev sev-req">REQ</span> INFO</span></td>
         <td class="td-check">vSAN HCL Check Scope</td>
-        <td class="td-desc">vSAN ESA HCL check performed on 12/16 hosts. 4 Broadwell hosts skipped &mdash; those hosts are already BLOCK on CPU generation and will require full hardware replacement.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-desc">vSAN ESA HCL check performed on 12/16 hosts. 4 Broadwell hosts skipped - those hosts are already BLOCK on CPU generation and will require full hardware replacement.</td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">Address Broadwell CPU BLOCK items first. Re-run HCL check after hardware replacement.</td>
       </tr>
 
@@ -577,7 +577,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr data-status="WARN">
         <td><span class="chip chip-warn"><span class="sev sev-bp">BP</span> WARN</span></td>
         <td class="td-check">VMkernel MTU Check <span class="count-badge">(3x)</span></td>
-        <td class="td-desc">3 VMkernel adapters have MTU 1500 &mdash; below recommended 9000 (jumbo frames). MTU&ge;1600 is required for NSX-T Geneve overlay; 1500 will cause packet fragmentation on vSAN and vMotion traffic at scale.</td>
+        <td class="td-desc">3 VMkernel adapters have MTU 1500 - below recommended 9000 (jumbo frames). MTU&ge;1600 is required for NSX-T Geneve overlay; 1500 will cause packet fragmentation on vSAN and vMotion traffic at scale.</td>
         <td class="td-obj">
           <span class="obj-tag">esx-prod06:vmk1 (vMotion, 1500)</span>
           <span class="obj-tag">esx-prod07:vmk2 (vSAN, 1500)</span>
@@ -591,7 +591,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">DNS Forward Lookup <span class="count-badge">(16x)</span></td>
         <td class="td-desc">All 16 hosts resolve correctly via DNS forward lookup (A record). SDDC Manager prerequisite met.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -599,7 +599,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr data-status="WARN">
         <td><span class="chip chip-warn"><span class="sev sev-req">REQ</span> WARN</span></td>
         <td class="td-check">DNS Reverse (PTR) Lookup <span class="count-badge">(2x)</span></td>
-        <td class="td-desc">2 hosts are missing PTR records in the reverse DNS zone. VCF SDDC Manager validates both forward and reverse DNS during host commissioning &mdash; missing PTR will cause commissioning failure.</td>
+        <td class="td-desc">2 hosts are missing PTR records in the reverse DNS zone. VCF SDDC Manager validates both forward and reverse DNS during host commissioning - missing PTR will cause commissioning failure.</td>
         <td class="td-obj">
           <span class="obj-tag">esx-mgmt03.acme-corp.local (10.10.50.13)</span>
           <span class="obj-tag">esx-mgmt04.acme-corp.local (10.10.50.14)</span>
@@ -636,7 +636,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">Management Network Reachability <span class="count-badge">(16x)</span></td>
         <td class="td-desc">All 16 hosts reachable on management VMkernel. No packet loss detected.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -644,7 +644,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">vMotion VMkernel Present <span class="count-badge">(16x)</span></td>
         <td class="td-desc">All 16 hosts have a dedicated vMotion VMkernel adapter configured.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -652,15 +652,15 @@ tr:hover td{background:rgba(88,166,255,.04)}
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">vSAN VMkernel Present <span class="count-badge">(16x)</span></td>
         <td class="td-desc">All 16 hosts have a dedicated vSAN VMkernel adapter configured and tagged.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
       <tr class="row-pass" style="display:none" data-status="PASS">
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">Distributed Switch Present <span class="count-badge">(3x)</span></td>
-        <td class="td-desc">All 3 clusters are using vSphere Distributed Switches (VDS 8.0). VCF requires VDS &mdash; standard switches not permitted.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-desc">All 3 clusters are using vSphere Distributed Switches (VDS 8.0). VCF requires VDS - standard switches not permitted.</td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -668,7 +668,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">NTP Service Enabled <span class="count-badge">(15x)</span></td>
         <td class="td-desc">15 hosts have NTP service running and set to start with host (1 host has drift but service is running).</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -706,7 +706,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr data-status="BLOCK">
         <td><span class="chip chip-block"><span class="sev sev-req">REQ</span> BLOCK</span></td>
         <td class="td-check">ESXi Version Compatibility <span class="count-badge">(4x)</span></td>
-        <td class="td-desc">4 hosts are running ESXi 7.0 U3 (build 21686933). There is NO direct upgrade path from ESXi 7.x to VCF 9.x &mdash; VCF 9.0.1 requires ESXi 8.0 U2+ as a baseline.</td>
+        <td class="td-desc">4 hosts are running ESXi 7.0 U3 (build 21686933). There is NO direct upgrade path from ESXi 7.x to VCF 9.x - VCF 9.0.1 requires ESXi 8.0 U2+ as a baseline.</td>
         <td class="td-obj">
           <span class="obj-tag">esx-prod05 (7.0.3)</span>
           <span class="obj-tag">esx-prod06 (7.0.3)</span>
@@ -732,7 +732,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr class="row-pass" style="display:none" data-status="PASS">
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">ESXi Version Compatibility <span class="count-badge">(12x)</span></td>
-        <td class="td-desc">12 hosts running ESXi 8.0 U2 (build 22380479) &mdash; compatible with VCF 9.0.1 onboarding path.</td>
+        <td class="td-desc">12 hosts running ESXi 8.0 U2 (build 22380479) - compatible with VCF 9.0.1 onboarding path.</td>
         <td class="td-obj">
           <span class="obj-tag">esx-prod01 (8.0.2)</span>
           <span class="obj-tag">esx-prod02 (8.0.2)</span>
@@ -769,7 +769,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <tr class="row-pass" style="display:none" data-status="PASS">
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">vLCM Image-Based Management</td>
-        <td class="td-desc">Mgmt-Cluster is already using vLCM image-based management &mdash; ready for VCF onboarding.</td>
+        <td class="td-desc">Mgmt-Cluster is already using vLCM image-based management - ready for VCF onboarding.</td>
         <td class="td-obj">
           <span class="obj-tag">Mgmt-Cluster (image mode)</span>
         </td>
@@ -805,7 +805,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">vSphere HA Configuration <span class="count-badge">(3x)</span></td>
         <td class="td-desc">All 3 clusters have vSphere HA enabled with admission control configured. VCF requires HA for DRS/WCP functionality.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -814,7 +814,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
         <td><span class="chip chip-pass"><span class="sev sev-req">REQ</span> PASS</span></td>
         <td class="td-check">DRS Configuration <span class="count-badge">(3x)</span></td>
         <td class="td-desc">All 3 clusters have DRS enabled in Fully Automated mode. VCF SDDC Manager requires DRS for workload placement and initial deployment.</td>
-        <td class="td-obj"><span class="obj-none">&mdash;</span></td>
+        <td class="td-obj"><span class="obj-none">-</span></td>
         <td class="td-fix">No action required.</td>
       </tr>
 
@@ -883,7 +883,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
           <span class="obj-tag">Entitlement: 1,024 TiB</span>
           <span class="obj-tag">Utilization: 6.25%</span>
         </td>
-        <td class="td-fix">No additional vSAN licensing required. Monitor growth trajectory &mdash; if projected to exceed 1,024 TiB within 12 months, plan add-on capacity licenses in advance.</td>
+        <td class="td-fix">No additional vSAN licensing required. Monitor growth trajectory - if projected to exceed 1,024 TiB within 12 months, plan add-on capacity licenses in advance.</td>
       </tr>
 
       <!-- WARN: Perpetual license migration path -->
@@ -895,7 +895,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
           <span class="obj-tag">vSphere 8 Ent+ (perpetual, 1024 cores)</span>
           <span class="obj-tag">vSAN 8 Ent (perpetual, 1024 cores)</span>
         </td>
-        <td class="td-fix">Transition to VCF subscription license model. Contact Broadcom licensing for upgrade path &mdash; existing perpetual license holders may qualify for transition pricing. See <a href="https://knowledge.broadcom.com/external/article/313548" target="_blank">KB 313548</a>.</td>
+        <td class="td-fix">Transition to VCF subscription license model. Contact Broadcom licensing for upgrade path - existing perpetual license holders may qualify for transition pricing. See <a href="https://knowledge.broadcom.com/external/article/313548" target="_blank">KB 313548</a>.</td>
       </tr>
 
     </tbody>
@@ -923,7 +923,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-pass"></span> esx-prod01.acme-corp.local</div>
       <div class="cluster-label">Prod-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6338">2&times; Gold 6338 (64c / 2s) &mdash; Ice Lake</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6338">2&times; Gold 6338 (64c / 2s) - Ice Lake</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">512 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 25GbE</span></div>
     </div>
@@ -933,7 +933,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-pass"></span> esx-prod02.acme-corp.local</div>
       <div class="cluster-label">Prod-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6338">2&times; Gold 6338 (64c / 2s) &mdash; Ice Lake</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6338">2&times; Gold 6338 (64c / 2s) - Ice Lake</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">512 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 25GbE</span></div>
     </div>
@@ -943,7 +943,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-pass"></span> esx-prod03.acme-corp.local</div>
       <div class="cluster-label">Prod-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6348">2&times; Gold 6348 (56c / 2s) &mdash; Ice Lake</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6348">2&times; Gold 6348 (56c / 2s) - Ice Lake</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">768 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">6&times; 25GbE</span></div>
     </div>
@@ -953,7 +953,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-pass"></span> esx-prod04.acme-corp.local</div>
       <div class="cluster-label">Prod-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Platinum 8380">2&times; Platinum 8380 (80c / 2s) &mdash; Ice Lake</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Platinum 8380">2&times; Platinum 8380 (80c / 2s) - Ice Lake</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">1024 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 25GbE</span></div>
     </div>
@@ -963,7 +963,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-block"></span> esx-prod05.acme-corp.local</div>
       <div class="cluster-label">Prod-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val" style="color:var(--color-block)">7.0 U3 (21686933)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-warn)" title="Intel Xeon Gold 6248R">2&times; Gold 6248R (48c / 2s) &mdash; Cascade Lake</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-warn)" title="Intel Xeon Gold 6248R">2&times; Gold 6248R (48c / 2s) - Cascade Lake</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">384 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 10GbE</span></div>
     </div>
@@ -973,7 +973,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-block"></span> esx-prod06.acme-corp.local</div>
       <div class="cluster-label">Prod-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val" style="color:var(--color-block)">7.0 U3 (21686933)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-warn)" title="Intel Xeon Gold 5218">2&times; Gold 5218 (32c / 2s) &mdash; Cascade Lake</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-warn)" title="Intel Xeon Gold 5218">2&times; Gold 5218 (32c / 2s) - Cascade Lake</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">256 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val" style="color:var(--color-warn)">2&times; 25GbE</span></div>
     </div>
@@ -983,7 +983,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-block"></span> esx-prod07.acme-corp.local</div>
       <div class="cluster-label">Prod-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val" style="color:var(--color-block)">7.0 U3 (21686933)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-warn)" title="Intel Xeon Gold 5218">2&times; Gold 5218 (32c / 2s) &mdash; Cascade Lake</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-warn)" title="Intel Xeon Gold 5218">2&times; Gold 5218 (32c / 2s) - Cascade Lake</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val" style="color:var(--color-warn)">256 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val" style="color:var(--color-warn)">2&times; 25GbE</span></div>
     </div>
@@ -993,7 +993,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-block"></span> esx-prod08.acme-corp.local</div>
       <div class="cluster-label">Prod-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val" style="color:var(--color-block)">7.0 U3 (21686933)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-warn)" title="Intel Xeon Gold 6248R">2&times; Gold 6248R (48c / 2s) &mdash; Cascade Lake</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-warn)" title="Intel Xeon Gold 6248R">2&times; Gold 6248R (48c / 2s) - Cascade Lake</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">512 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 10GbE</span></div>
     </div>
@@ -1004,7 +1004,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-warn"></span> esx-mgmt01.acme-corp.local</div>
       <div class="cluster-label">Mgmt-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6338">2&times; Gold 6338 (64c / 2s) &mdash; Ice Lake</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6338">2&times; Gold 6338 (64c / 2s) - Ice Lake</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">512 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 25GbE</span></div>
     </div>
@@ -1014,7 +1014,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-warn"></span> esx-mgmt02.acme-corp.local</div>
       <div class="cluster-label">Mgmt-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6338">2&times; Gold 6338 (64c / 2s) &mdash; Ice Lake</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6338">2&times; Gold 6338 (64c / 2s) - Ice Lake</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">256 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 25GbE</span></div>
     </div>
@@ -1024,7 +1024,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-warn"></span> esx-mgmt03.acme-corp.local</div>
       <div class="cluster-label">Mgmt-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6430">2&times; Gold 6430 (64c / 2s) &mdash; Sapphire Rapids</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6430">2&times; Gold 6430 (64c / 2s) - Sapphire Rapids</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">512 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 25GbE</span></div>
     </div>
@@ -1034,7 +1034,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-warn"></span> esx-mgmt04.acme-corp.local</div>
       <div class="cluster-label">Mgmt-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6430">2&times; Gold 6430 (64c / 2s) &mdash; Sapphire Rapids</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="Intel Xeon Gold 6430">2&times; Gold 6430 (64c / 2s) - Sapphire Rapids</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">512 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 25GbE</span></div>
     </div>
@@ -1044,7 +1044,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-block"></span> esx-edge01.acme-corp.local</div>
       <div class="cluster-label">Edge-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-block)" title="Intel Xeon E5-2680 v4">2&times; E5-2680 v4 (28c / 2s) &mdash; Broadwell</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-block)" title="Intel Xeon E5-2680 v4">2&times; E5-2680 v4 (28c / 2s) - Broadwell</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val" style="color:var(--color-block)">192 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 10GbE</span></div>
     </div>
@@ -1053,7 +1053,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-block"></span> esx-edge02.acme-corp.local</div>
       <div class="cluster-label">Edge-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-block)" title="Intel Xeon E5-2680 v4">2&times; E5-2680 v4 (28c / 2s) &mdash; Broadwell</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-block)" title="Intel Xeon E5-2680 v4">2&times; E5-2680 v4 (28c / 2s) - Broadwell</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val" style="color:var(--color-block)">192 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 10GbE</span></div>
     </div>
@@ -1062,7 +1062,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-block"></span> esx-edge03.acme-corp.local</div>
       <div class="cluster-label">Edge-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-block)" title="Intel Xeon E5-2680 v4">2&times; E5-2680 v4 (28c / 2s) &mdash; Broadwell</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-block)" title="Intel Xeon E5-2680 v4">2&times; E5-2680 v4 (28c / 2s) - Broadwell</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val" style="color:var(--color-block)">192 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 10GbE</span></div>
     </div>
@@ -1071,7 +1071,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
       <div class="hname"><span class="host-dot dot-block"></span> esx-edge04.acme-corp.local</div>
       <div class="cluster-label">Edge-Cluster</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">8.0 U2 (22380479)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-block)" title="Intel Xeon E5-2680 v4">2&times; E5-2680 v4 (28c / 2s) &mdash; Broadwell</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" style="color:var(--color-block)" title="Intel Xeon E5-2680 v4">2&times; E5-2680 v4 (28c / 2s) - Broadwell</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val" style="color:var(--color-block)">192 GB</span></div>
       <div class="hrow"><span class="lbl">NICs</span><span class="val">4&times; 10GbE</span></div>
     </div>
@@ -1084,14 +1084,14 @@ tr:hover td{background:rgba(88,166,255,.04)}
 <section id="roadmap">
 <div class="container">
   <div class="section-title"><span class="icon">&#128736;</span> Remediation Roadmap</div>
-  <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">Prioritized actions &mdash; REQ blockers first, then REQ warnings, then BP items. Resolve all BLOCKs before scheduling migration.</p>
+  <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">Prioritized actions - REQ blockers first, then REQ warnings, then BP items. Resolve all BLOCKs before scheduling migration.</p>
 
   <!-- BLOCKER 1: Broadwell CPU + RAM replacement -->
   <div class="roadmap-card">
     <div class="roadmap-num blocker">1</div>
     <div class="roadmap-body">
       <div class="action">Replace all 4 Edge-Cluster hosts (Broadwell E5-2680 v4) with Ice Lake+ hardware</div>
-      <div class="roadmap-detail">esx-edge01, esx-edge02, esx-edge03, esx-edge04 &mdash; CPU and RAM both below VCF 9.x minimums</div>
+      <div class="roadmap-detail">esx-edge01, esx-edge02, esx-edge03, esx-edge04 - CPU and RAM both below VCF 9.x minimums</div>
       <div class="roadmap-tags">
         <span class="tag tag-cat">Compute</span>
         <span class="tag">CPU Generation</span>
@@ -1107,7 +1107,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
     <div class="roadmap-num blocker">2</div>
     <div class="roadmap-body">
       <div class="action">Upgrade 4 ESXi 7.0 U3 hosts to ESXi 8.0 U2+ before VCF onboarding (no direct path: 7.x &rarr; VCF 9.x)</div>
-      <div class="roadmap-detail">esx-prod05, esx-prod06, esx-prod07, esx-prod08 &mdash; two-stage upgrade required</div>
+      <div class="roadmap-detail">esx-prod05, esx-prod06, esx-prod07, esx-prod08 - two-stage upgrade required</div>
       <div class="roadmap-tags">
         <span class="tag tag-cat">Software</span>
         <span class="tag">ESXi Version</span>
@@ -1123,7 +1123,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
   <div class="roadmap-card">
     <div class="roadmap-num blocker">3</div>
     <div class="roadmap-body">
-      <div class="action">Free up capacity on vsanDS-ProdCluster (91%) and vsanDS-EdgeCluster (87%) &mdash; target &le;70% before migration</div>
+      <div class="action">Free up capacity on vsanDS-ProdCluster (91%) and vsanDS-EdgeCluster (87%) - target &le;70% before migration</div>
       <div class="roadmap-detail">Delete stale VMs, migrate cold data to archive, or expand cluster capacity with additional hosts/disks</div>
       <div class="roadmap-tags">
         <span class="tag tag-cat">Storage</span>
@@ -1172,7 +1172,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
     <div class="roadmap-num warning">6</div>
     <div class="roadmap-body">
       <div class="action">Create missing PTR records for esx-mgmt03 (10.10.50.13) and esx-mgmt04 (10.10.50.14) in reverse DNS zone</div>
-      <div class="roadmap-detail">SDDC Manager validates forward + reverse DNS during host commissioning &mdash; missing PTR will fail the workflow</div>
+      <div class="roadmap-detail">SDDC Manager validates forward + reverse DNS during host commissioning - missing PTR will fail the workflow</div>
       <div class="roadmap-tags">
         <span class="tag tag-cat">Network</span>
         <span class="tag">DNS Reverse (PTR)</span>
@@ -1204,7 +1204,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
     <div class="roadmap-num warning">8</div>
     <div class="roadmap-body">
       <div class="action">Replace USB boot device on esx-mgmt02 with internal M.2 BOSS / NVMe / SSD (&ge;128GB recommended)</div>
-      <div class="roadmap-detail">esx-mgmt02.acme-corp.local &mdash; currently booting from USB Kingston 32GB. VCF 9.x requires local disk for ESX-OSData.</div>
+      <div class="roadmap-detail">esx-mgmt02.acme-corp.local - currently booting from USB Kingston 32GB. VCF 9.x requires local disk for ESX-OSData.</div>
       <div class="roadmap-tags">
         <span class="tag tag-cat">Storage</span>
         <span class="tag">USB Boot Device</span>
@@ -1220,7 +1220,7 @@ tr:hover td{background:rgba(88,166,255,.04)}
     <div class="roadmap-num warning">9</div>
     <div class="roadmap-body">
       <div class="action">Configure MTU 9000 on vMotion/vSAN/NSX overlay VMkernels and coordinate with network team for upstream switch MTU change</div>
-      <div class="roadmap-detail">esx-prod06:vmk1, esx-prod07:vmk2, esx-mgmt02:vmk1 &mdash; currently MTU 1500 (NSX Geneve requires &ge;1600, jumbo recommended)</div>
+      <div class="roadmap-detail">esx-prod06:vmk1, esx-prod07:vmk2, esx-mgmt02:vmk1 - currently MTU 1500 (NSX Geneve requires &ge;1600, jumbo recommended)</div>
       <div class="roadmap-tags">
         <span class="tag tag-cat">Network</span>
         <span class="tag">VMkernel MTU</span>
@@ -1235,8 +1235,8 @@ tr:hover td{background:rgba(88,166,255,.04)}
   <div class="roadmap-card">
     <div class="roadmap-num warning">10</div>
     <div class="roadmap-body">
-      <div class="action">Plan hardware refresh for 4 Cascade Lake hosts (deprecated for VCF 9.x &mdash; functional today, schedule refresh within 12 months)</div>
-      <div class="roadmap-detail">esx-prod05, esx-prod06, esx-prod07, esx-prod08 &mdash; Gold 6248R and Gold 5218 (Cascade Lake)</div>
+      <div class="action">Plan hardware refresh for 4 Cascade Lake hosts (deprecated for VCF 9.x - functional today, schedule refresh within 12 months)</div>
+      <div class="roadmap-detail">esx-prod05, esx-prod06, esx-prod07, esx-prod08 - Gold 6248R and Gold 5218 (Cascade Lake)</div>
       <div class="roadmap-tags">
         <span class="tag tag-cat">Compute</span>
         <span class="tag">CPU Generation (Deprecated)</span>
@@ -1251,8 +1251,8 @@ tr:hover td{background:rgba(88,166,255,.04)}
   <div class="roadmap-card">
     <div class="roadmap-num warning">11</div>
     <div class="roadmap-body">
-      <div class="action">Housekeeping: fix NTP drift on esx-prod08, disable SSH on 3 idle hosts, add NICs to 2-NIC hosts, upgrade VMware Tools on 43 VMs, review 3 datastores at 75&ndash;85% capacity</div>
-      <div class="roadmap-detail">Multiple hosts and VMs affected &mdash; schedule during next maintenance window</div>
+      <div class="action">Housekeeping: fix NTP drift on esx-prod08, disable SSH on 3 idle hosts, add NICs to 2-NIC hosts, upgrade VMware Tools on 43 VMs, review 3 datastores at 75-85% capacity</div>
+      <div class="roadmap-detail">Multiple hosts and VMs affected - schedule during next maintenance window</div>
       <div class="roadmap-tags">
         <span class="tag tag-cat">Network / Compute / Software / Storage</span>
         <span class="tag">Housekeeping</span>
@@ -1269,8 +1269,8 @@ tr:hover td{background:rgba(88,166,255,.04)}
 <!-- ═══════════════ FOOTER ═══════════════ -->
 <footer class="footer">
   <div class="container">
-    <div>vsphere-vcf-readiness v0.5.1 &mdash; EXAMPLE REPORT (mock data, not a real environment)</div>
-    <div>vcsa-prod.acme-corp.local &mdash; 2026-04-07 14:32:18</div>
+    <div>vsphere-vcf-readiness v0.5.1 - EXAMPLE REPORT (mock data, not a real environment)</div>
+    <div>vcsa-prod.acme-corp.local - 2026-04-07 14:32:18</div>
     <div style="margin-top:8px">
       <a href="https://github.com/canberkys/vsphere-vcf-readiness" target="_blank" style="color:var(--accent-blue)">github.com/canberkys/vsphere-vcf-readiness</a>
       &nbsp;&middot;&nbsp;
