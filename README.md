@@ -262,6 +262,16 @@ All thresholds are driven by version-specific requirement matrices (`checks/requ
 ### v0.1.0
 - Initial prototype
 
+## Contributing
+
+Contributions are welcome! If you find a bug, have a feature request, or want to improve the tool:
+
+- **Bug reports & feature requests:** [Open an issue](https://github.com/canberkys/vsphere-vcf-readiness/issues)
+- **Code contributions:** [Submit a pull request](https://github.com/canberkys/vsphere-vcf-readiness/pulls)
+- **Questions & discussions:** [Start a discussion](https://github.com/canberkys/vsphere-vcf-readiness/discussions)
+
+Please make sure your PR includes a clear description of the change and any relevant test results (`-WhatIf` output).
+
 ## License
 
 MIT
