@@ -501,15 +501,18 @@ $hostInventory = if ($WhatIfPreference) {
 } else {
     try {
         Get-VMHost | Where-Object { $_.Name -notin $config.excludeHosts } | ForEach-Object {
-            $nicCount = try { (Get-VMHostNetworkAdapter -VMHost $_ -Physical | Measure-Object).Count } catch { 0 }
+            $nicCount   = try { (Get-VMHostNetworkAdapter -VMHost $_ -Physical | Measure-Object).Count } catch { 0 }
+            $sockets    = try { $_.ExtensionData.Hardware.CpuInfo.NumCpuPackages } catch { 0 }
+            $coresTotal = try { $_.ExtensionData.Hardware.CpuInfo.NumCpuCores } catch { 0 }
+            $coresPerS  = if ($sockets -gt 0) { [math]::Floor($coresTotal / $sockets) } else { 0 }
             [PSCustomObject]@{
                 Name           = $_.Name
                 Version        = $_.Version
                 Build          = $_.Build
                 ProcessorType  = $_.ProcessorType
                 MemoryTotalGB  = [math]::Round($_.MemoryTotalGB, 0)
-                CpuSockets     = try { $_.ExtensionData.Hardware.CpuInfo.NumCpuPackages } catch { 0 }
-                CoresPerSocket = try { $_.ExtensionData.Hardware.CpuInfo.NumCpuCores / $_.ExtensionData.Hardware.CpuInfo.NumCpuPackages } catch { 0 }
+                CpuSockets     = $sockets
+                CoresPerSocket = $coresPerS
                 _MockNicCount  = $nicCount
             }
         }
