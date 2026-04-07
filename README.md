@@ -158,7 +158,7 @@ All thresholds are driven by version-specific requirement matrices (`checks/requ
 - [USB/SD Boot Guidance (KB 317631)](https://knowledge.broadcom.com/external/article/317631)
 - [vLCM Image Requirement (KB 322186)](https://knowledge.broadcom.com/external/article/322186)
 - [Core-Based Licensing (KB 313548)](https://knowledge.broadcom.com/external/article/313548)
-- [VCF 9.0 Deployment Planning](https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0)
+- [Deprecated CPU Systems in ESXi 9.0 (KB 428874)](https://knowledge.broadcom.com/external/article/428874)
 
 ## Changelog
 

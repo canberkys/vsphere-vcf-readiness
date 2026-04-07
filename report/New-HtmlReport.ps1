@@ -114,7 +114,7 @@ function Build-HtmlContent {
             # Build expandable affected objects HTML
             $expandId++
             if ($allObjects.Count -eq 0) {
-                $objHtml = "<span class='obj-none'>&mdash;</span>"
+                $objHtml = "<span class='obj-none'>-</span>"
             } elseif ($allObjects.Count -le 3) {
                 $objHtml = ($allObjects | ForEach-Object { "<span class='obj-tag'>$([System.Web.HttpUtility]::HtmlEncode($_))</span>" }) -join ""
             } else {
@@ -441,7 +441,7 @@ $hostCards
 <section id="roadmap">
 <div class="container">
   <div class="section-title"><span class="icon">&#128736;</span> Remediation Roadmap</div>
-  <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">Prioritized actions &mdash; requirements first, then best practices.</p>
+  <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">Prioritized actions - requirements first, then best practices.</p>
 $roadmapHtml
 </div>
 </section>
@@ -449,7 +449,7 @@ $roadmapHtml
 <footer class="footer">
   <div class="container">
     <div>vsphere-vcf-readiness v$ver</div>
-    <div>$vcenter &mdash; $ts</div>
+    <div>$vcenter - $ts</div>
     <div style="margin-top:8px">
       <a href="https://github.com/canberkys/vsphere-vcf-readiness" style="color:var(--accent-blue)">github.com/canberkys/vsphere-vcf-readiness</a>
       &nbsp;&middot;&nbsp;

@@ -79,7 +79,7 @@ function Invoke-ComputeCheck {
 
         $cpuStatus      = "PASS"
         $cpuSeverity    = "Requirement"
-        $cpuDescription = "CPU is Ice Lake or newer — fully VCF compatible."
+        $cpuDescription = "CPU is Ice Lake or newer -fully VCF compatible."
         $cpuRemediation = "None"
         $cpuScore       = 100
 
@@ -136,13 +136,13 @@ function Invoke-ComputeCheck {
             $cpuStatus      = "BLOCK"
             $cpuSeverity    = "Requirement"
             $cpuScore       = 0
-            $cpuDescription = "CPU ($cpuModel) is Haswell/Broadwell/Skylake era — discontinued for VCF 9.x. Installation is blocked."
+            $cpuDescription = "CPU ($cpuModel) is Haswell/Broadwell/Skylake era -discontinued for VCF 9.x. Installation is blocked."
             $cpuRemediation = "Replace host hardware with Ice Lake (3rd Gen Scalable) or newer CPUs. https://knowledge.broadcom.com/external/article/318697"
         } elseif ($isCascade) {
             $cpuStatus      = "WARN"
             $cpuSeverity    = "BestPractice"
             $cpuScore       = 50
-            $cpuDescription = "CPU ($cpuModel) is Cascade Lake — deprecated for VCF 9.x. Supported but nearing end of general support."
+            $cpuDescription = "CPU ($cpuModel) is Cascade Lake -deprecated for VCF 9.x. Supported but nearing end of general support."
             $cpuRemediation = "Plan hardware refresh to Ice Lake+ within next upgrade cycle. Cascade Lake is fully functional including vSAN ESA. https://knowledge.broadcom.com/external/article/318697"
         }
 
@@ -175,7 +175,7 @@ function Invoke-ComputeCheck {
                 Score           = 0
                 AffectedObjects = @($vmhost.Name)
                 Description     = "Host $($vmhost.Name) has $nicCount physical NIC(s). VCF requires minimum $minNicReq x 10GbE."
-                Remediation     = "Add 10GbE or faster NICs. VCF requires at least $minNicReq physical NICs. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
+                Remediation     = "Add 10GbE or faster NICs. VCF requires at least $minNicReq physical NICs. https://knowledge.broadcom.com/external/article/318697"
             })
         } elseif ($nicCount -lt $minNicBp) {
             $results.Add([PSCustomObject]@{
@@ -186,7 +186,7 @@ function Invoke-ComputeCheck {
                 Score           = 50
                 AffectedObjects = @($vmhost.Name)
                 Description     = "Host $($vmhost.Name) has $nicCount physical NIC(s). Best practice: ${minNicBp}+ for traffic separation."
-                Remediation     = "Consider adding NICs for dedicated vMotion, vSAN, and NSX overlay traffic. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
+                Remediation     = "Consider adding NICs for dedicated vMotion, vSAN, and NSX overlay traffic. https://knowledge.broadcom.com/external/article/318697"
             })
         } else {
             $results.Add([PSCustomObject]@{
@@ -196,7 +196,7 @@ function Invoke-ComputeCheck {
                 Severity        = "Requirement"
                 Score           = 100
                 AffectedObjects = @($vmhost.Name)
-                Description     = "Host $($vmhost.Name) has $nicCount physical NIC(s) — meets requirement."
+                Description     = "Host $($vmhost.Name) has $nicCount physical NIC(s) -meets requirement."
                 Remediation     = "None"
             })
         }
@@ -214,7 +214,7 @@ function Invoke-ComputeCheck {
                 Score           = 0
                 AffectedObjects = @($vmhost.Name)
                 Description     = "Host $($vmhost.Name) has ${ramGB}GB RAM. VCF/vSAN ESA requires minimum ${minRamReq}GB."
-                Remediation     = "Upgrade RAM to at least ${minRamReq}GB (requirement). ${minRamBp}GB+ recommended for production. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
+                Remediation     = "Upgrade RAM to at least ${minRamReq}GB (requirement). ${minRamBp}GB+ recommended for production. https://knowledge.broadcom.com/external/article/318697"
             })
         } elseif ($ramGB -lt $minRamBp) {
             $results.Add([PSCustomObject]@{
@@ -235,7 +235,7 @@ function Invoke-ComputeCheck {
                 Severity        = "Requirement"
                 Score           = 100
                 AffectedObjects = @($vmhost.Name)
-                Description     = "Host $($vmhost.Name) has ${ramGB}GB RAM — meets requirement."
+                Description     = "Host $($vmhost.Name) has ${ramGB}GB RAM -meets requirement."
                 Remediation     = "None"
             })
         }

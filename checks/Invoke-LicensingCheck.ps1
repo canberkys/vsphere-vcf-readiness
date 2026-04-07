@@ -173,7 +173,7 @@ function Invoke-LicensingCheck {
                 "Current vSAN capacity ($vsanUsageTiB TiB) exceeds VCF included entitlement ($entitlementTiB TiB). Additional vSAN add-on licenses required."
             }
             Remediation     = if ($vsanUsageTiB -le $entitlementTiB) {
-                "No additional vSAN licensing required. Monitor growth — exceeding $entitlementTiB TiB will require add-on capacity licenses."
+                "No additional vSAN licensing required. Monitor growth -exceeding $entitlementTiB TiB will require add-on capacity licenses."
             } else {
                 "Procure additional vSAN capacity licenses for the excess $([math]::Round($vsanUsageTiB - $entitlementTiB, 1)) TiB."
             }

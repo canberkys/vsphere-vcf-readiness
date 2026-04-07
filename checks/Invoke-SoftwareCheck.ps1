@@ -77,7 +77,7 @@ function Invoke-SoftwareCheck {
         $major = [int]($version.Split('.')[0])
 
         if ($major -lt 8) {
-            # ESXi 7.x or older — no direct path to VCF 9.x
+            # ESXi 7.x or older -no direct path to VCF 9.x
             $blockHosts += "$($vmhost.Name) ($version)"
         } elseif ((Compare-EsxiVersion $version $minEsxiVer) -lt 0) {
             # ESXi 8.x but below minimum
@@ -101,7 +101,7 @@ function Invoke-SoftwareCheck {
                 Score           = 0
                 AffectedObjects = @($esxi7Hosts)
                 Description     = "$($esxi7Hosts.Count) host(s) running ESXi 7.x. There is NO direct upgrade path from ESXi 7.x to VCF 9.x."
-                Remediation     = "Upgrade path: ESXi 7.x -> ESXi 8.0 U2+ -> VCF 9.x. Plan a two-stage upgrade. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
+                Remediation     = "Upgrade path: ESXi 7.x -> ESXi 8.0 U2+ -> VCF 9.x. Plan a two-stage upgrade. https://knowledge.broadcom.com/external/article/318697"
             })
         }
 
@@ -114,7 +114,7 @@ function Invoke-SoftwareCheck {
                 Score           = 0
                 AffectedObjects = @($esxi8LowHosts)
                 Description     = "$($esxi8LowHosts.Count) host(s) running ESXi 8.x below minimum $($minEsxiVer) for VCF $($vcfVer)."
-                Remediation     = "Upgrade to ESXi $($minEsxiVer) or later before VCF migration. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
+                Remediation     = "Upgrade to ESXi $($minEsxiVer) or later before VCF migration. https://knowledge.broadcom.com/external/article/318697"
             })
         }
     }
@@ -164,7 +164,7 @@ function Invoke-SoftwareCheck {
             Score           = 0
             AffectedObjects = @("$vcName ($vcVersion)")
             Description     = "vCenter $vcVersion is below minimum $($minVcVer) required for VCF $($vcfVer)."
-            Remediation     = "Upgrade vCenter to $($minVcVer) or later before VCF migration. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
+            Remediation     = "Upgrade vCenter to $($minVcVer) or later before VCF migration. https://knowledge.broadcom.com/external/article/318697"
         })
     } else {
         $results.Add([PSCustomObject]@{

@@ -81,7 +81,7 @@ function Invoke-StorageCheck {
             Score           = 0
             AffectedObjects = $dsBlock
             Description     = "$($dsBlock.Count) datastore(s) above ${blockPct}% capacity threshold."
-            Remediation     = "Free up space or add capacity before VCF migration. Migration requires temporary additional space. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
+            Remediation     = "Free up space or add capacity before VCF migration. Migration requires temporary additional space. https://knowledge.broadcom.com/external/article/317631"
         })
     }
 
@@ -94,7 +94,7 @@ function Invoke-StorageCheck {
             Score           = 50
             AffectedObjects = $dsWarn
             Description     = "$($dsWarn.Count) datastore(s) between ${warnPct}%-${blockPct}% capacity."
-            Remediation     = "Plan capacity expansion — migration will require additional temporary space."
+            Remediation     = "Plan capacity expansion -migration will require additional temporary space."
         })
     }
 
