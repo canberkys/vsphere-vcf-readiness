@@ -1,14 +1,4 @@
 function New-HtmlReport {
-    <#
-    .SYNOPSIS
-        Generates VCF readiness report in HTML, JSON, and/or CSV format.
-    .PARAMETER ReadinessResults
-        The results object from the main assessment script.
-    .PARAMETER OutputPath
-        Directory to write report files.
-    .PARAMETER Format
-        Output format: HTML, JSON, CSV, or All.
-    #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
@@ -26,14 +16,12 @@ function New-HtmlReport {
     $baseName  = "vcf-readiness-report_$timestamp"
     $outputs   = @()
 
-    # ── JSON Export ──
     if ($Format -in @("JSON","All")) {
         $jsonPath = Join-Path $OutputPath "$baseName.json"
         $ReadinessResults | ConvertTo-Json -Depth 10 | Set-Content -Path $jsonPath -Encoding UTF8
         $outputs += $jsonPath
     }
 
-    # ── CSV Export ──
     if ($Format -in @("CSV","All")) {
         $csvPath = Join-Path $OutputPath "$baseName.csv"
         $ReadinessResults.Results | ForEach-Object {
@@ -51,7 +39,6 @@ function New-HtmlReport {
         $outputs += $csvPath
     }
 
-    # ── HTML Export ──
     if ($Format -in @("HTML","All")) {
         $htmlPath = Join-Path $OutputPath "$baseName.html"
         $html     = Build-HtmlContent -R $ReadinessResults
@@ -73,7 +60,6 @@ function Build-HtmlContent {
     $storage  = $R.StorageType
     $ver      = $R.ToolVersion
 
-    # Score ring calculations
     $circumference = [math]::Round(2 * [math]::PI * 85, 2)
     $offset = [math]::Round($circumference - ($score / 100) * $circumference, 2)
     $ringColor = if ($score -ge 80) { "#3fb950" } elseif ($score -ge 50) { "#d29922" } else { "#f85149" }
@@ -91,16 +77,17 @@ function Build-HtmlContent {
 "@
     }
 
-    # Build category detail tables with grouping and filters
+    # Build category detail tables
     $categories = $R.Results | Select-Object -ExpandProperty Category -Unique
     $categoryIcons = @{ Compute="&#9881;"; Storage="&#128190;"; Network="&#127760;"; Software="&#128230;"; Licensing="&#128273;" }
     $categorySections = ""
+    $expandId = 0
 
     foreach ($cat in $categories) {
         $catResults = $R.Results | Where-Object { $_.Category -eq $cat }
         $icon = if ($categoryIcons[$cat]) { $categoryIcons[$cat] } else { "&#9632;" }
 
-        # Group results by CheckName + Status + Description to reduce repetition
+        # Group results by CheckName + Status + Description
         $grouped = $catResults | Group-Object -Property { "$($_.CheckName)|$($_.Status)|$($_.Severity)|$($_.Description)|$($_.Remediation)" }
 
         $rows = ""
@@ -111,49 +98,49 @@ function Build-HtmlContent {
             $chipClass = switch ($first.Status) { "BLOCK"{"chip-block"} "WARN"{"chip-warn"} "PASS"{"chip-pass"} "INFO"{"chip-info"} }
             $sevLabel = if ($first.Severity -eq "Requirement") { '<span class="sev sev-req">REQ</span>' } else { '<span class="sev sev-bp">BP</span>' }
 
-            # Merge all AffectedObjects from group
+            # Merge all AffectedObjects
             $allObjects = @()
             foreach ($item in $group.Group) {
                 if ($item.AffectedObjects) { $allObjects += $item.AffectedObjects }
             }
             $allObjects = $allObjects | Select-Object -Unique
 
-            $objHtml = if ($allObjects.Count -gt 0) {
-                if ($allObjects.Count -le 5) {
-                    ($allObjects | ForEach-Object { "<span>$([System.Web.HttpUtility]::HtmlEncode($_))</span>" }) -join " "
-                } else {
-                    $shown = ($allObjects[0..2] | ForEach-Object { "<span>$([System.Web.HttpUtility]::HtmlEncode($_))</span>" }) -join " "
-                    "$shown <span style='color:var(--accent-blue)'>+$($allObjects.Count - 3) more</span>"
-                }
-            } else { "—" }
+            # Build expandable affected objects HTML
+            $expandId++
+            if ($allObjects.Count -eq 0) {
+                $objHtml = "<span class='obj-none'>&mdash;</span>"
+            } elseif ($allObjects.Count -le 3) {
+                $objHtml = ($allObjects | ForEach-Object { "<span class='obj-tag'>$([System.Web.HttpUtility]::HtmlEncode($_))</span>" }) -join ""
+            } else {
+                $visibleHtml = ($allObjects[0..2] | ForEach-Object { "<span class='obj-tag'>$([System.Web.HttpUtility]::HtmlEncode($_))</span>" }) -join ""
+                $hiddenHtml = ($allObjects[3..($allObjects.Count-1)] | ForEach-Object { "<span class='obj-tag'>$([System.Web.HttpUtility]::HtmlEncode($_))</span>" }) -join ""
+                $remaining = $allObjects.Count - 3
+                $objHtml = "${visibleHtml}<span class='obj-hidden' id='exp-${expandId}' style='display:none'>${hiddenHtml}</span><span class='obj-toggle' onclick='toggleExpand(${expandId})'>+${remaining} more</span>"
+            }
 
-            # Count for PASS grouping
             $isPass = $first.Status -in @("PASS","INFO")
             if ($isPass) { $passCount += $group.Count }
 
             $hideClass = if ($isPass) { "row-pass" } else { "" }
             $hideStyle = if ($isPass) { "display:none" } else { "" }
 
-            # Append count badge if grouped
-            $countBadge = if ($group.Count -gt 1) { " <span style='opacity:.5;font-size:11px'>($($group.Count)x)</span>" } else { "" }
+            $countBadge = if ($group.Count -gt 1) { " <span class='count-badge'>$($group.Count)x</span>" } else { "" }
 
             $rows += @"
       <tr class="$hideClass" style="$hideStyle" data-status="$($first.Status)">
         <td><span class="chip $chipClass">$sevLabel $($first.Status)</span></td>
-        <td>$([System.Web.HttpUtility]::HtmlEncode($first.CheckName))$countBadge</td>
-        <td class="desc">$([System.Web.HttpUtility]::HtmlEncode($first.Description))</td>
-        <td class="obj-list">$objHtml</td>
-        <td class="fix">$([System.Web.HttpUtility]::HtmlEncode($first.Remediation))</td>
+        <td class="td-check">$([System.Web.HttpUtility]::HtmlEncode($first.CheckName))$countBadge</td>
+        <td class="td-desc">$([System.Web.HttpUtility]::HtmlEncode($first.Description))</td>
+        <td class="td-obj">$objHtml</td>
+        <td class="td-fix">$([System.Web.HttpUtility]::HtmlEncode($first.Remediation))</td>
       </tr>
 "@
         }
 
-        # Pass toggle button
         $passToggle = if ($passCount -gt 0) {
-            "<div class='pass-toggle' onclick='togglePass(this)' style='padding:10px 14px;font-size:12px;color:var(--accent-blue);cursor:pointer;border-top:1px solid var(--border)'>Show $passCount passed/info check(s)</div>"
+            "<div class='pass-toggle' onclick='togglePass(this)'><span class='pass-arrow'>&#9654;</span> Show $passCount passed/info check(s)</div>"
         } else { "" }
 
-        # Filter buttons
         $catId = $cat.ToLower()
         $blockN = ($catResults | Where-Object { $_.Status -eq "BLOCK" }).Count
         $warnN  = ($catResults | Where-Object { $_.Status -eq "WARN" }).Count
@@ -163,15 +150,15 @@ function Build-HtmlContent {
 <section id="$catId">
 <div class="container">
   <div class="section-title"><span class="icon">$icon</span> $cat Checks</div>
-  <div class="filter-bar" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-    <button class="fbtn active" onclick="filterTable(this,'$catId','ALL')">All ($($catResults.Count))</button>
-    <button class="fbtn" onclick="filterTable(this,'$catId','BLOCK')">Block ($blockN)</button>
-    <button class="fbtn" onclick="filterTable(this,'$catId','WARN')">Warn ($warnN)</button>
-    <button class="fbtn" onclick="filterTable(this,'$catId','PASS')">Pass ($passN)</button>
+  <div class="filter-bar">
+    <button class="fbtn active" onclick="filterTable(this,'$catId','ALL')">All ($($grouped.Count))</button>
+    <button class="fbtn fbtn-block" onclick="filterTable(this,'$catId','BLOCK')">Block ($blockN)</button>
+    <button class="fbtn fbtn-warn" onclick="filterTable(this,'$catId','WARN')">Warn ($warnN)</button>
+    <button class="fbtn fbtn-pass" onclick="filterTable(this,'$catId','PASS')">Pass ($passN)</button>
   </div>
   <div class="tbl-wrap">
   <table id="tbl-$catId">
-    <thead><tr><th>Status</th><th>Check</th><th>Description</th><th>Affected Objects</th><th>Remediation</th></tr></thead>
+    <thead><tr><th style="width:100px">Status</th><th style="width:180px">Check</th><th>Description</th><th style="width:280px">Affected Objects</th><th style="width:260px">Remediation</th></tr></thead>
     <tbody>
 $rows
     </tbody>
@@ -186,27 +173,32 @@ $rows
     # Host inventory cards
     $hostCards = ""
     foreach ($h in $R.Hosts) {
-        $cpuShort = if ($h.ProcessorType) { $h.ProcessorType -replace 'Intel\(R\) Xeon\(R\) ','' -replace ' CPU','' } else { "N/A" }
-        $cores = if ($h.CoresPerSocket -and $h.CpuSockets) { "$($h.CpuSockets)x ($($h.CoresPerSocket * $h.CpuSockets)c)" } else { "" }
+        $cpuShort = if ($h.ProcessorType) {
+            $h.ProcessorType -replace 'Intel\(R\) Xeon\(R\) ','' -replace ' CPU','' -replace ' @ .*',''
+        } else { "N/A" }
+        $totalCores = if ($h.CoresPerSocket -and $h.CpuSockets) { $h.CoresPerSocket * $h.CpuSockets } else { 0 }
+        $coreInfo = if ($totalCores -gt 0) { "${totalCores}c / $($h.CpuSockets)s" } else { "" }
+        $nicCount = if ($h._MockNicCount) { $h._MockNicCount } else { "?" }
 
-        # Determine card border based on host issues
         $hostResults = $R.Results | Where-Object { $_.AffectedObjects -contains $h.Name }
         $hasBlock = ($hostResults | Where-Object { $_.Status -eq "BLOCK" }).Count -gt 0
         $hasWarn  = ($hostResults | Where-Object { $_.Status -eq "WARN" }).Count -gt 0
         $borderStyle = if ($hasBlock) { "border-color:var(--color-block)" } elseif ($hasWarn) { "border-color:var(--color-warn)" } else { "" }
+        $statusDot = if ($hasBlock) { '<span class="host-dot dot-block"></span>' } elseif ($hasWarn) { '<span class="host-dot dot-warn"></span>' } else { '<span class="host-dot dot-pass"></span>' }
 
         $hostCards += @"
     <div class="host-card" style="$borderStyle">
-      <div class="hname">$([System.Web.HttpUtility]::HtmlEncode($h.Name))</div>
+      <div class="hname">$statusDot $([System.Web.HttpUtility]::HtmlEncode($h.Name))</div>
       <div class="hrow"><span class="lbl">ESXi</span><span class="val">$($h.Version)</span></div>
-      <div class="hrow"><span class="lbl">CPU</span><span class="val">$cores $cpuShort</span></div>
+      <div class="hrow"><span class="lbl">CPU</span><span class="val" title="$([System.Web.HttpUtility]::HtmlEncode($h.ProcessorType))">$cpuShort</span></div>
+      <div class="hrow"><span class="lbl">Cores</span><span class="val">$coreInfo</span></div>
       <div class="hrow"><span class="lbl">RAM</span><span class="val">$($h.MemoryTotalGB) GB</span></div>
-      <div class="hrow"><span class="lbl">NICs</span><span class="val">$($h._MockNicCount)</span></div>
+      <div class="hrow"><span class="lbl">NICs</span><span class="val">$nicCount</span></div>
     </div>
 "@
     }
 
-    # Remediation roadmap (auto-generated from results)
+    # Remediation roadmap
     $roadmapItems = $R.Results | Where-Object { $_.Status -in @("BLOCK","WARN") } |
         Sort-Object @{E={if($_.Status -eq "BLOCK"){0}else{1}}}, @{E={if($_.Severity -eq "Requirement"){0}else{1}}}, Category |
         Group-Object -Property { "$($_.CheckName)|$($_.Category)" }
@@ -217,20 +209,24 @@ $rows
         $priority++
         $first = $group.Group[0]
         $numClass = if ($first.Status -eq "BLOCK") { "blocker" } else { "warning" }
-        $sevTag = if ($first.Severity -eq "Requirement") { '<span class="tag" style="color:var(--color-block)">Requirement</span>' } else { '<span class="tag" style="color:var(--color-info)">Best Practice</span>' }
+        $sevTag = if ($first.Severity -eq "Requirement") { '<span class="tag tag-req">Requirement</span>' } else { '<span class="tag tag-bp">Best Practice</span>' }
         $allObjects = ($group.Group | ForEach-Object { $_.AffectedObjects }) | Select-Object -Unique
-        $objectSummary = if ($allObjects.Count -le 3) { ($allObjects -join ", ") } else { "$($allObjects.Count) objects affected" }
+        $objCount = $allObjects.Count
+        $objectSummary = if ($objCount -le 3) { ($allObjects -join ", ") } else {
+            "$($allObjects[0..1] -join ', ') +$($objCount - 2) more"
+        }
 
         $roadmapHtml += @"
   <div class="roadmap-card">
     <div class="roadmap-num $numClass">$priority</div>
     <div class="roadmap-body">
       <div class="action">$([System.Web.HttpUtility]::HtmlEncode($first.Remediation))</div>
-      <div style="font-size:12px;color:var(--text-secondary);margin:4px 0">$([System.Web.HttpUtility]::HtmlEncode($objectSummary))</div>
+      <div class="roadmap-detail">$([System.Web.HttpUtility]::HtmlEncode($objectSummary))</div>
       <div class="roadmap-tags">
         <span class="tag tag-cat">$($first.Category)</span>
         <span class="tag">$($first.CheckName)</span>
         $sevTag
+        <span class="tag">$objCount object(s)</span>
       </div>
     </div>
   </div>
@@ -243,7 +239,6 @@ $rows
         $navLinks += "<a href=`"#$($cat.ToLower())`">$cat</a>`n"
     }
 
-    # Assemble full HTML
     $html = @"
 <!DOCTYPE html>
 <html lang="en">
@@ -259,7 +254,7 @@ $rows
 html{scroll-behavior:smooth}
 body{font-family:var(--font-sans);background:var(--bg-primary);color:var(--text-primary);line-height:1.6;min-height:100vh}
 a{color:var(--accent-blue);text-decoration:none}a:hover{text-decoration:underline}
-.container{max-width:1280px;margin:0 auto;padding:0 24px}
+.container{max-width:1400px;margin:0 auto;padding:0 24px}
 .header{background:linear-gradient(135deg,#0d1117 0%,#161b22 50%,#1a1e2e 100%);border-bottom:1px solid var(--border);padding:32px 0}
 .header-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
 .header h1{font-family:var(--font-mono);font-size:24px;font-weight:600}
@@ -294,41 +289,70 @@ section{padding:40px 0}section+section{border-top:1px solid var(--border)}
 .cat-bar-header .name{font-size:14px;font-weight:500}.cat-bar-header .val{font-family:var(--font-mono);font-size:14px;font-weight:600}
 .cat-bar-track{height:6px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden}
 .cat-bar-fill{height:100%;border-radius:3px;transition:width 1s ease}
-.chip{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:12px;font-family:var(--font-mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+/* Chips */
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-family:var(--font-mono);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
 .chip-block{background:var(--color-block-bg);color:var(--color-block)}.chip-warn{background:var(--color-warn-bg);color:var(--color-warn)}.chip-pass{background:var(--color-pass-bg);color:var(--color-pass)}.chip-info{background:var(--color-info-bg);color:var(--color-info)}
 .sev{font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-right:2px}
-.sev-req{background:rgba(255,255,255,.1)}.sev-bp{background:rgba(255,255,255,.05);opacity:.7}
+.sev-req{background:rgba(255,255,255,.12)}.sev-bp{background:rgba(255,255,255,.06);opacity:.7}
+.count-badge{opacity:.5;font-size:11px;font-weight:400;margin-left:4px}
+/* Tables */
 .tbl-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius-lg)}
-table{width:100%;border-collapse:collapse;font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
 thead{background:var(--bg-tertiary)}
 th{padding:10px 14px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);white-space:nowrap}
-td{padding:12px 14px;border-top:1px solid var(--border);vertical-align:top}
-tr:hover td{background:rgba(88,166,255,.03)}
-.obj-list{font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);line-height:1.7}
-.obj-list span{display:inline-block;background:var(--bg-tertiary);padding:1px 8px;border-radius:4px;margin:1px 2px}
-td.desc{max-width:380px}td.fix{max-width:340px;color:var(--text-secondary);font-size:12px}
-.host-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:12px}
-.host-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;flex-direction:column;gap:8px}
-.host-card .hname{font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--accent-blue)}
-.host-card .hrow{display:flex;justify-content:space-between;font-size:12px}
-.host-card .hrow .lbl{color:var(--text-muted)}.host-card .hrow .val{font-family:var(--font-mono);color:var(--text-secondary)}
+td{padding:14px 14px;border-top:1px solid var(--border);vertical-align:top;word-wrap:break-word;overflow-wrap:break-word}
+tr:hover td{background:rgba(88,166,255,.04)}
+.td-check{font-weight:500}
+.td-desc{color:var(--text-secondary);font-size:12px;line-height:1.5}
+.td-fix{color:var(--text-muted);font-size:12px;line-height:1.5}
+.td-obj{font-family:var(--font-mono);font-size:11px;color:var(--text-secondary);line-height:1.8}
+.obj-tag{display:inline-block;background:var(--bg-tertiary);padding:2px 8px;border-radius:4px;margin:2px 3px 2px 0;word-break:break-all}
+.obj-hidden{display:none}
+.obj-toggle{display:inline-block;background:rgba(88,166,255,.1);color:var(--accent-blue);padding:2px 10px;border-radius:4px;margin:2px 3px;cursor:pointer;font-weight:600;transition:background .2s}
+.obj-toggle:hover{background:rgba(88,166,255,.2)}
+.obj-none{color:var(--text-muted)}
+/* Filter buttons */
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.fbtn{background:var(--bg-tertiary);color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:5px 14px;font-size:11px;font-family:var(--font-mono);cursor:pointer;transition:all .2s}
+.fbtn:hover{border-color:var(--accent-blue);color:var(--text-primary)}
+.fbtn.active{background:var(--accent-blue);color:#fff;border-color:var(--accent-blue)}
+.fbtn-block.active{background:var(--color-block);border-color:var(--color-block)}
+.fbtn-warn.active{background:var(--color-warn);border-color:var(--color-warn);color:#000}
+.fbtn-pass.active{background:var(--color-pass);border-color:var(--color-pass);color:#000}
+/* Pass toggle */
+.pass-toggle{padding:10px 14px;font-size:12px;color:var(--accent-blue);cursor:pointer;border-top:1px solid var(--border);transition:background .2s;user-select:none}
+.pass-toggle:hover{background:rgba(88,166,255,.05)}
+.pass-arrow{display:inline-block;transition:transform .2s;font-size:10px;margin-right:6px}
+.pass-toggle.open .pass-arrow{transform:rotate(90deg)}
+/* Legend */
+.legend{display:flex;gap:20px;margin-bottom:20px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap;padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
+.legend-item{display:flex;align-items:center;gap:6px}
+/* Host cards */
+.host-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.host-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;flex-direction:column;gap:6px;transition:border-color .2s}
+.host-card:hover{border-color:var(--accent-blue)}
+.host-card .hname{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--accent-blue);display:flex;align-items:center;gap:8px}
+.host-card .hrow{display:flex;justify-content:space-between;font-size:12px;padding:1px 0}
+.host-card .hrow .lbl{color:var(--text-muted)}.host-card .hrow .val{font-family:var(--font-mono);color:var(--text-secondary);text-align:right;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.host-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-block{background:var(--color-block)}.dot-warn{background:var(--color-warn)}.dot-pass{background:var(--color-pass)}
+/* Roadmap */
 .roadmap-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:flex;align-items:flex-start;gap:16px;margin-bottom:8px;transition:border-color .2s}
 .roadmap-card:hover{border-color:var(--accent-blue)}
 .roadmap-num{flex-shrink:0;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;font-weight:700}
 .roadmap-num.blocker{background:var(--color-block-bg);color:var(--color-block)}.roadmap-num.warning{background:var(--color-warn-bg);color:var(--color-warn)}
 .roadmap-body{flex:1}.roadmap-body .action{font-size:14px;font-weight:500;margin-bottom:4px}
-.roadmap-tags{display:flex;gap:8px;flex-wrap:wrap}
+.roadmap-detail{font-size:12px;color:var(--text-secondary);margin-bottom:6px;font-family:var(--font-mono)}
+.roadmap-tags{display:flex;gap:6px;flex-wrap:wrap}
 .roadmap-tags .tag{font-size:11px;padding:2px 8px;border-radius:4px;background:var(--bg-tertiary);color:var(--text-secondary);font-family:var(--font-mono)}
 .roadmap-tags .tag-cat{color:var(--accent-purple)}
-.legend{display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
-.legend-item{display:flex;align-items:center;gap:6px}
-.fbtn{background:var(--bg-tertiary);color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:11px;font-family:var(--font-mono);cursor:pointer;transition:all .2s}
-.fbtn:hover{border-color:var(--accent-blue);color:var(--text-primary)}
-.fbtn.active{background:var(--accent-blue);color:#fff;border-color:var(--accent-blue)}
+.roadmap-tags .tag-req{color:var(--color-block)}
+.roadmap-tags .tag-bp{color:var(--color-info)}
+/* Footer */
 .footer{border-top:1px solid var(--border);padding:24px 0;font-size:12px;color:var(--text-muted);text-align:center;font-family:var(--font-mono)}
 .footer div+div{margin-top:4px}
-@media print{body{background:#fff;color:#1a1a1a}.nav{display:none}}
-@media(max-width:768px){.score-section{flex-direction:column;align-items:center}.ring-container{width:180px;height:180px}.header-inner{flex-direction:column;text-align:center}.header-meta{text-align:center}}
+@media print{body{background:#fff;color:#1a1a1a}.nav{display:none}.row-pass{display:table-row!important}}
+@media(max-width:768px){.score-section{flex-direction:column;align-items:center}.ring-container{width:180px;height:180px}.header-inner{flex-direction:column;text-align:center}.header-meta{text-align:center}table{font-size:11px}td{padding:8px 10px}}
 </style>
 </head>
 <body>
@@ -363,20 +387,23 @@ td.desc{max-width:380px}td.fix{max-width:340px;color:var(--text-secondary);font-
   <div class="legend">
     <div class="legend-item"><span class="sev sev-req" style="font-size:10px">REQ</span> VCF Requirement (hard gate)</div>
     <div class="legend-item"><span class="sev sev-bp" style="font-size:10px">BP</span> Best Practice (advisory)</div>
+    <div class="legend-item"><span class="chip chip-block" style="font-size:9px;padding:1px 6px">BLOCK</span> Migration stopper</div>
+    <div class="legend-item"><span class="chip chip-warn" style="font-size:9px;padding:1px 6px">WARN</span> Needs attention</div>
+    <div class="legend-item"><span class="chip chip-pass" style="font-size:9px;padding:1px 6px">PASS</span> OK</div>
   </div>
   <div class="score-section">
     <div class="ring-container">
       <svg viewBox="0 0 200 200">
         <circle class="ring-bg" cx="100" cy="100" r="85"></circle>
-        <circle class="ring-progress" cx="100" cy="100" r="85"
+        <circle class="ring-progress" id="scoreRing" cx="100" cy="100" r="85"
                 stroke="$ringColor"
                 stroke-dasharray="$circumference"
-                stroke-dashoffset="$offset"></circle>
+                stroke-dashoffset="$circumference"></circle>
       </svg>
       <div class="ring-label">
-        <div class="score">$score</div>
+        <div class="score" id="scoreNum">0</div>
         <div class="of">/ 100</div>
-        <div class="verdict">$verdict</div>
+        <div class="verdict" id="scoreVerdict">$verdict</div>
       </div>
     </div>
     <div class="stat-cards">
@@ -408,7 +435,7 @@ $hostCards
 <section id="roadmap">
 <div class="container">
   <div class="section-title"><span class="icon">&#128736;</span> Remediation Roadmap</div>
-  <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">Prioritized actions — requirements first, then best practices. Blockers before warnings.</p>
+  <p style="color:var(--text-secondary);font-size:13px;margin-bottom:20px;">Prioritized actions &mdash; requirements first, then best practices.</p>
 $roadmapHtml
 </div>
 </section>
@@ -427,6 +454,10 @@ $roadmapHtml
 
 <script>
 (function(){
+  // Score ring animation
+  var SCORE=$score,CIRC=$circumference,ring=document.getElementById('scoreRing'),numEl=document.getElementById('scoreNum');
+  if(ring){var off=CIRC-(SCORE/100)*CIRC;setTimeout(function(){ring.style.strokeDashoffset=off;var c=0,step=Math.max(1,Math.floor(SCORE/30));var t=setInterval(function(){c+=step;if(c>=SCORE){c=SCORE;clearInterval(t)}numEl.textContent=c},25)},300)}
+
   // Nav scroll tracking
   var sections=document.querySelectorAll('section[id]'),navLinks=document.querySelectorAll('.nav a');
   function updateNav(){var c='';sections.forEach(function(s){if(window.scrollY>=s.offsetTop-80)c=s.id});
@@ -434,36 +465,52 @@ $roadmapHtml
   window.addEventListener('scroll',updateNav,{passive:true});
 })();
 
-// Filter table rows by status
-function filterTable(btn, catId, status) {
-  var tbl = document.getElementById('tbl-' + catId);
-  if (!tbl) return;
-  var rows = tbl.querySelectorAll('tbody tr');
-  rows.forEach(function(r) {
-    if (status === 'ALL') {
-      r.style.display = '';
-    } else if (status === 'PASS') {
-      r.style.display = (r.dataset.status === 'PASS' || r.dataset.status === 'INFO') ? '' : 'none';
-    } else {
-      r.style.display = r.dataset.status === status ? '' : 'none';
-    }
-  });
-  // Update active button
-  btn.parentElement.querySelectorAll('.fbtn').forEach(function(b){ b.classList.remove('active'); });
-  btn.classList.add('active');
+// Expand/collapse affected objects
+function toggleExpand(id){
+  var el=document.getElementById('exp-'+id);
+  if(!el)return;
+  var btn=el.nextElementSibling;
+  if(el.style.display==='none'){
+    el.style.display='inline';
+    btn.textContent='collapse';
+    btn.style.background='rgba(88,166,255,.15)';
+  }else{
+    el.style.display='none';
+    var count=el.querySelectorAll('.obj-tag').length;
+    btn.textContent='+'+count+' more';
+    btn.style.background='';
+  }
 }
 
-// Toggle pass rows visibility
-function togglePass(el) {
-  var tbl = el.previousElementSibling;
-  if (!tbl) return;
-  var rows = tbl.querySelectorAll('.row-pass');
-  var showing = false;
-  rows.forEach(function(r) {
-    if (r.style.display === 'none') { r.style.display = ''; showing = true; }
-    else { r.style.display = 'none'; }
+// Filter table rows
+function filterTable(btn,catId,status){
+  var tbl=document.getElementById('tbl-'+catId);
+  if(!tbl)return;
+  tbl.querySelectorAll('tbody tr').forEach(function(r){
+    if(status==='ALL'){r.style.display=''}
+    else if(status==='PASS'){r.style.display=(r.dataset.status==='PASS'||r.dataset.status==='INFO')?'':'none'}
+    else{r.style.display=r.dataset.status===status?'':'none'}
   });
-  el.textContent = showing ? 'Hide passed/info checks' : el.textContent.replace('Hide','Show');
+  btn.parentElement.querySelectorAll('.fbtn').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  // Hide pass-toggle when filtering
+  var toggle=tbl.parentElement.querySelector('.pass-toggle');
+  if(toggle)toggle.style.display=status==='ALL'?'':'none';
+}
+
+// Toggle pass rows
+function togglePass(el){
+  var tbl=el.previousElementSibling;
+  if(!tbl)return;
+  var rows=tbl.querySelectorAll('.row-pass');
+  var showing=rows[0]&&rows[0].style.display==='none';
+  rows.forEach(function(r){r.style.display=showing?'':'none'});
+  el.classList.toggle('open',showing);
+  var countMatch=el.textContent.match(/\d+/);
+  var count=countMatch?countMatch[0]:'';
+  el.innerHTML=showing
+    ?'<span class="pass-arrow" style="transform:rotate(90deg)">&#9654;</span> Hide '+count+' passed/info check(s)'
+    :'<span class="pass-arrow">&#9654;</span> Show '+count+' passed/info check(s)';
 }
 </script>
 </body>
