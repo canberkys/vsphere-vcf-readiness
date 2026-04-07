@@ -5,9 +5,10 @@
     Connects to a vCenter Server, runs a suite of readiness checks (compute, storage,
     network, software, licensing) and produces a scored report.
 .PARAMETER VCenterServer
-    FQDN or IP of the target vCenter Server.
+    FQDN or IP of the target vCenter Server. Falls back to config.json vcenterServer.
 .PARAMETER Credential
     PSCredential for vCenter authentication (read-only role sufficient).
+    Falls back to saved credential file or interactive prompt.
 .PARAMETER ConfigFile
     Path to config.json. Defaults to ./config.json.
 .PARAMETER OutputPath
@@ -18,12 +19,26 @@
     Run with mock data — no vCenter connection required.
 .EXAMPLE
     .\vsphere-vcf-readiness.ps1
-    # Uses vcenterServer from config.json, prompts for credential
+    # Reads vCenter from config.json, uses saved credential or prompts
 .EXAMPLE
     .\vsphere-vcf-readiness.ps1 -VCenterServer vcsa.lab.local -Credential (Get-Credential)
 .EXAMPLE
     .\vsphere-vcf-readiness.ps1 -WhatIf
 #>
+
+# ── PS 5.1 re-launch guard: if opened with Windows PowerShell, restart in pwsh ──
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    if (Get-Command pwsh -ErrorAction SilentlyContinue) {
+        Write-Host "Relaunching in PowerShell 7..." -ForegroundColor Yellow
+        Start-Process pwsh -ArgumentList "-File `"$PSCommandPath`"" -NoNewWindow -Wait
+        exit
+    } else {
+        Write-Error "PowerShell 7.2+ is required. Install from https://github.com/PowerShell/PowerShell"
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+}
+
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
@@ -46,9 +61,10 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$script:ToolVersion = "0.3.0"
+$script:ToolVersion = "0.4.0"
+$script:CredentialFile = Join-Path $HOME ".vcf-readiness-cred.xml"
 
-# Resolve script root reliably (handles interactive/dot-source cases)
+# Resolve script root reliably (handles interactive/dot-source/double-click cases)
 if (-not $PSScriptRoot) {
     $PSScriptRoot = Split-Path -Parent (Resolve-Path $MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue) -ErrorAction SilentlyContinue
 }
@@ -80,41 +96,51 @@ if (-not (Test-Path $ConfigFile)) {
 $config = Get-Content $ConfigFile -Raw | ConvertFrom-Json
 Write-Host "[*] Config loaded: VCF target $($config.targetVcfVersion), storage: $($config.storageType)" -ForegroundColor Green
 
-# ── Resolve vCenter Server ──
-if (-not $VCenterServer -and $config.vcenterServer) {
-    $VCenterServer = $config.vcenterServer
-    Write-Host "[*] vCenter from config: $VCenterServer" -ForegroundColor DarkGray
+# ══════════════════════════════════════════════════════════════
+# Resolve vCenter Server (priority: param > config > prompt)
+# ══════════════════════════════════════════════════════════════
+
+if (-not $VCenterServer -and -not $WhatIfPreference) {
+    if ($config.vcenterServer) {
+        $VCenterServer = $config.vcenterServer
+        Write-Host "[*] vCenter from config: $VCenterServer" -ForegroundColor DarkGray
+    } else {
+        $VCenterServer = Read-Host "  vCenter Server address"
+    }
 }
 
-# ── Resolve Credential ──
+# ══════════════════════════════════════════════════════════════
+# Resolve Credential (priority: param > saved file > prompt)
+# ══════════════════════════════════════════════════════════════
+
 if (-not $Credential -and -not $WhatIfPreference) {
-    if ($config.savedCredential -eq $true) {
-        $credTarget = if ($config.credentialTarget) { $config.credentialTarget } else { "vsphere-vcf-readiness" }
+    # Try saved credential file
+    if (Test-Path $script:CredentialFile) {
         try {
-            # Try CredentialManager module (Windows)
-            if (Get-Command Get-StoredCredential -ErrorAction SilentlyContinue) {
-                $Credential = Get-StoredCredential -Target $credTarget
-                if ($Credential) {
-                    Write-Host "[*] Credential loaded from Credential Manager: $credTarget" -ForegroundColor DarkGray
-                }
-            }
-            # Try SecretManagement module (cross-platform)
-            if (-not $Credential -and (Get-Command Get-Secret -ErrorAction SilentlyContinue)) {
-                $Credential = Get-Secret -Name $credTarget -ErrorAction SilentlyContinue
-                if ($Credential) {
-                    Write-Host "[*] Credential loaded from SecretManagement: $credTarget" -ForegroundColor DarkGray
-                }
-            }
-            if (-not $Credential) {
-                Write-Warning "savedCredential is true but no credential found for '$credTarget'. Prompting..."
-                $Credential = Get-Credential -Message "Enter vCenter credentials for $VCenterServer"
+            $savedCred = Import-Clixml -Path $script:CredentialFile
+            $savedUser = $savedCred.UserName
+            Write-Host ""
+            $useSaved = Read-Host "  Saved credential found for [$savedUser], use it? [Y/N]"
+            if ($useSaved -match '^[Yy]') {
+                $Credential = $savedCred
+                Write-Host "[*] Using saved credential: $savedUser" -ForegroundColor Green
             }
         } catch {
-            Write-Warning "Failed to load stored credential: $_. Prompting..."
-            $Credential = Get-Credential -Message "Enter vCenter credentials for $VCenterServer"
+            Write-Warning "Failed to load saved credential: $_"
         }
-    } elseif ($VCenterServer) {
+    }
+
+    # If still no credential, prompt and offer to save
+    if (-not $Credential) {
         $Credential = Get-Credential -Message "Enter vCenter credentials for $VCenterServer"
+        if ($Credential) {
+            Write-Host ""
+            $saveIt = Read-Host "  Save credential for next time? [Y/N]"
+            if ($saveIt -match '^[Yy]') {
+                $Credential | Export-Clixml -Path $script:CredentialFile -Force
+                Write-Host "[*] Credential saved to $script:CredentialFile" -ForegroundColor Green
+            }
+        }
     }
 }
 
@@ -236,7 +262,6 @@ function New-MockClusters {
 
 function New-MockVMs {
     $vms = [System.Collections.Generic.List[psobject]]::new()
-    # 142 VMs total, 34 with old Tools
     for ($i = 1; $i -le 142; $i++) {
         $toolsVer = if ($i -le 34) { "10.3.5" } else { "12.1.0" }
         $vms.Add([PSCustomObject]@{ Name = "vm-mock-$i"; ToolsVersion = $toolsVer })
@@ -311,7 +336,7 @@ if ($WhatIfPreference) {
 } else {
     # ── Real connection ──
     if (-not $VCenterServer) {
-        Write-Error "VCenterServer is required. Set it via -VCenterServer parameter or vcenterServer in config.json."
+        Write-Error "VCenterServer is required. Set it via -VCenterServer parameter, vcenterServer in config.json, or enter it when prompted."
         return
     }
 
@@ -478,6 +503,7 @@ $script:ReadinessResults = [PSCustomObject]@{
 
 # ── Report Generation ──
 $reportModulePath = Join-Path $PSScriptRoot "report" "New-HtmlReport.ps1"
+$reportFile = $null
 if (Test-Path $reportModulePath) {
     . $reportModulePath
     if (Get-Command New-HtmlReport -ErrorAction SilentlyContinue) {
@@ -487,3 +513,27 @@ if (Test-Path $reportModulePath) {
 }
 
 Write-Host "[*] Assessment complete. $($allResults.Count) checks evaluated." -ForegroundColor Green
+
+# ── Open HTML report in browser ──
+if ($reportFile) {
+    $htmlReport = if ($reportFile -match ',') {
+        # Multiple formats — find the HTML one
+        ($reportFile -split ',\s*') | Where-Object { $_ -match '\.html$' } | Select-Object -First 1
+    } else { $reportFile }
+
+    if ($htmlReport -and (Test-Path $htmlReport)) {
+        Write-Host "[*] Opening report in browser..." -ForegroundColor DarkGray
+        try { Invoke-Item $htmlReport } catch {}
+    }
+}
+
+# ── Keep window open if launched by double-click ──
+if ($Host.Name -eq 'ConsoleHost' -and -not $WhatIfPreference) {
+    # Detect if running interactively (double-click scenario)
+    $parentProcess = try { (Get-Process -Id $PID).Parent.ProcessName } catch { "" }
+    if ($parentProcess -in @("explorer","cmd","powershell","pwsh")) {
+        Write-Host ""
+        Write-Host "  Press any key to exit..." -ForegroundColor DarkGray
+        $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
+}

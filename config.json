@@ -1,7 +1,5 @@
 {
     "vcenterServer": "vcsa.lab.local",
-    "credentialTarget": "vsphere-vcf-readiness",
-    "savedCredential": false,
     "targetVcfVersion": "9.0.1",
     "storageType": "vsan-esa",
     "vcfAutomationRequired": true,

@@ -8,7 +8,7 @@ VCF Import Tool only validates brownfield import. VCF Diagnostic Tool (VDT) is f
 
 ## Requirements
 
-- PowerShell 7.2+
+- PowerShell 7.2+ (script auto-relaunches in pwsh if opened with PS 5.1)
 - VMware.PowerCLI module (`Install-Module VMware.PowerCLI`)
 - Read-only vCenter credentials (sufficient for all checks)
 
@@ -25,7 +25,7 @@ cd vsphere-vcf-readiness
 # Edit config.json — set vcenterServer to your vCenter FQDN
 code config.json
 
-# Simplest usage — reads vCenter from config.json, prompts for credential
+# Just run it — reads vCenter from config, handles credential automatically
 .\vsphere-vcf-readiness.ps1
 
 # Or specify everything via parameters
@@ -38,25 +38,38 @@ code config.json
 .\vsphere-vcf-readiness.ps1 -WhatIf -ReportFormat All
 ```
 
-### Stored Credentials (optional)
+## Credential Management
 
-Save credentials once, then run without prompts:
+The script resolves credentials in this order:
 
-```powershell
-# Windows — CredentialManager module
-Install-Module CredentialManager -Scope CurrentUser
-New-StoredCredential -Target "vsphere-vcf-readiness" -UserName "admin@vsphere.local" -Password "P@ss" -Persist LocalMachine
+| Priority | Source | When |
+|----------|--------|------|
+| 1 | `-Credential` parameter | Explicitly passed on command line |
+| 2 | Saved credential file | `~/.vcf-readiness-cred.xml` exists |
+| 3 | Interactive prompt | No saved credential found |
 
-# Cross-platform — SecretManagement module
-Install-Module Microsoft.PowerShell.SecretManagement -Scope CurrentUser
-Set-Secret -Name "vsphere-vcf-readiness" -Secret (Get-Credential)
+### First Run
+
+On first run, after entering credentials you'll be asked:
+
+```
+Save credential for next time? [Y/N]
 ```
 
-Then set `savedCredential: true` in `config.json`. The script will load credentials automatically — no parameters needed:
+If you choose **Y**, the credential is saved as an encrypted XML file at `~/.vcf-readiness-cred.xml` using PowerShell's `Export-Clixml` (encrypted with the current user's Windows DPAPI key — only readable by the same user on the same machine).
+
+### Subsequent Runs
+
+```
+Saved credential found for [admin@vsphere.local], use it? [Y/N]
+```
+
+Choose **Y** to use the saved credential, or **N** to enter a new one.
+
+### Delete Saved Credential
 
 ```powershell
-.\vsphere-vcf-readiness.ps1
-# That's it. Reads vCenter + credential from config/store.
+Remove-Item ~/.vcf-readiness-cred.xml
 ```
 
 ## Configuration (config.json)
@@ -64,8 +77,6 @@ Then set `savedCredential: true` in `config.json`. The script will load credenti
 | Key | Description | Values |
 |-----|-------------|--------|
 | `vcenterServer` | vCenter FQDN/IP (used if `-VCenterServer` param not given) | `"vcsa.lab.local"` |
-| `savedCredential` | Load credential from store instead of prompting | `true` / `false` |
-| `credentialTarget` | Credential store entry name | `"vsphere-vcf-readiness"` |
 | `targetVcfVersion` | Target VCF version | `"9.0.0"`, `"9.0.1"` |
 | `storageType` | Storage architecture | `"vsan-osa"`, `"vsan-esa"`, `"fc-vmfs"`, `"nfs"` |
 | `vcfAutomationRequired` | Include automation checks | `true` / `false` |
@@ -104,7 +115,7 @@ Base score of 100, penalties applied per issue. Final = max(0, 100 + penalties).
 
 ## Report Output
 
-Reports are generated in `output/` directory:
+Reports are generated in `output/` directory and automatically opened in browser:
 - **HTML**: Standalone dark-theme report with score ring, category bars, issue tables, host inventory, remediation roadmap
 - **JSON**: Machine-readable results for CI/CD integration
 - **CSV**: Flat export for spreadsheet analysis
@@ -125,10 +136,17 @@ All thresholds are driven by version-specific requirement matrices (`checks/requ
 
 ## Changelog
 
+### v0.4.0
+- **feat:** Credential auto-management — saved credential file (`~/.vcf-readiness-cred.xml`) with interactive save/load prompts, no external modules needed
+- **feat:** PS 5.1 auto-relaunch — if opened with Windows PowerShell, script relaunches itself in pwsh
+- **feat:** Interactive vCenter prompt — if `vcenterServer` is empty in config, prompts via `Read-Host`
+- **feat:** Auto-open HTML report in browser after assessment completes
+- **feat:** "Press any key to exit" for double-click execution scenarios
+- **fix:** Removed dependency on CredentialManager/SecretManagement modules
+
 ### v0.3.0
 - **feat:** `vcenterServer` in config.json — no need for `-VCenterServer` parameter
-- **feat:** `savedCredential` support — reads from Windows Credential Manager (`Get-StoredCredential`) or PowerShell SecretManagement (`Get-Secret`), falls back to `Get-Credential` prompt
-- **fix:** `$PSScriptRoot` empty in interactive/dot-source sessions — added fallback chain (`$MyInvocation` → `$PWD`), resolves issue where `config.json` and requirement matrices couldn't be found
+- **fix:** `$PSScriptRoot` empty in interactive/dot-source sessions — added fallback chain
 
 ### v0.2.0
 - **feat:** 5 check modules — Compute, Storage, Network, Software, Licensing (20 checks total)
