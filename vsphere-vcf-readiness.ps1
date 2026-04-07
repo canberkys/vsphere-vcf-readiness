@@ -60,7 +60,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 }
 
 $ErrorActionPreference = "Stop"
-$script:ToolVersion = "0.4.2"
+$script:ToolVersion = "0.5.0"
 $script:CredentialFile = Join-Path $HOME ".vcf-readiness-cred.xml"
 
 # Resolve script root reliably (handles interactive/dot-source/double-click cases)
@@ -496,7 +496,25 @@ if ($blocks -gt 0 -or $warnings -gt 0) {
 # Build Results Object
 # ══════════════════════════════════════════════════════════════
 
-$hostInventory = if ($WhatIfPreference) { $mockHosts } else { @() }
+$hostInventory = if ($WhatIfPreference) {
+    $mockHosts
+} else {
+    try {
+        Get-VMHost | Where-Object { $_.Name -notin $config.excludeHosts } | ForEach-Object {
+            $nicCount = try { (Get-VMHostNetworkAdapter -VMHost $_ -Physical | Measure-Object).Count } catch { 0 }
+            [PSCustomObject]@{
+                Name           = $_.Name
+                Version        = $_.Version
+                Build          = $_.Build
+                ProcessorType  = $_.ProcessorType
+                MemoryTotalGB  = [math]::Round($_.MemoryTotalGB, 0)
+                CpuSockets     = try { $_.ExtensionData.Hardware.CpuInfo.NumCpuPackages } catch { 0 }
+                CoresPerSocket = try { $_.ExtensionData.Hardware.CpuInfo.NumCpuCores / $_.ExtensionData.Hardware.CpuInfo.NumCpuPackages } catch { 0 }
+                _MockNicCount  = $nicCount
+            }
+        }
+    } catch { @() }
+}
 
 $script:ReadinessResults = [PSCustomObject]@{
     Score          = $finalScore

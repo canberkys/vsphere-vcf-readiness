@@ -26,8 +26,13 @@ function Invoke-NetworkCheck {
         [psobject[]]$MockVMKernels
     )
 
-    $req = $Requirements.network
+    $req = if ($Requirements) { $Requirements.network } else { $null }
     $results = [System.Collections.Generic.List[psobject]]::new()
+
+    # Safe defaults when Requirements is null
+    $nsxMinMtu      = if ($req -and $nsxMinMtu)   { $nsxMinMtu }   else { 1600 }
+    $recommendedMtu = if ($req -and $recommendedMtu)     { $recommendedMtu }     else { 9000 }
+    $ntpDriftWarn   = if ($req -and $ntpDriftWarn) { $ntpDriftWarn } else { 5 }
 
     $hosts = if ($VMHosts) { $VMHosts } else {
         Get-VMHost | Where-Object { $_.Name -notin $Config.excludeHosts }
@@ -60,9 +65,9 @@ function Invoke-NetworkCheck {
         $isTrafficVmk = $vmk.VMotion -or $vmk.VSan -or ($vmk.PortGroup -match 'vMotion|vSAN|Overlay|NSX')
 
         if ($isTrafficVmk) {
-            if ($vmk.Mtu -lt $req.nsxOverlayMinMtu) {
+            if ($vmk.Mtu -lt $nsxMinMtu) {
                 $mtuBlockList += "$($vmk.HostName):$($vmk.DeviceName)(MTU=$($vmk.Mtu))"
-            } elseif ($vmk.Mtu -lt $req.recommendedMtu) {
+            } elseif ($vmk.Mtu -lt $recommendedMtu) {
                 $mtuWarnList += "$($vmk.HostName):$($vmk.DeviceName)(MTU=$($vmk.Mtu))"
             }
         }
@@ -76,8 +81,8 @@ function Invoke-NetworkCheck {
             Severity        = "Requirement"
             Score           = 0
             AffectedObjects = $mtuBlockList
-            Description     = "$($mtuBlockList.Count) VMkernel adapter(s) have MTU below $($req.nsxOverlayMinMtu). NSX overlay transport requires minimum MTU $($req.nsxOverlayMinMtu)."
-            Remediation     = "Configure MTU $($req.nsxOverlayMinMtu)+ on vMotion/vSAN/overlay VMkernels and upstream physical switches."
+            Description     = "$($mtuBlockList.Count) VMkernel adapter(s) have MTU below $($nsxMinMtu). NSX overlay transport requires minimum MTU $($nsxMinMtu)."
+            Remediation     = "Configure MTU $($nsxMinMtu)+ on vMotion/vSAN/overlay VMkernels and upstream physical switches."
         })
     }
 
@@ -89,8 +94,8 @@ function Invoke-NetworkCheck {
             Severity        = "BestPractice"
             Score           = 50
             AffectedObjects = $mtuWarnList
-            Description     = "$($mtuWarnList.Count) VMkernel adapter(s) have MTU below recommended $($req.recommendedMtu). Jumbo frames improve vMotion/vSAN performance."
-            Remediation     = "Configure MTU $($req.recommendedMtu) on all vMotion/vSAN VMkernels and upstream switches for optimal performance."
+            Description     = "$($mtuWarnList.Count) VMkernel adapter(s) have MTU below recommended $($recommendedMtu). Jumbo frames improve vMotion/vSAN performance."
+            Remediation     = "Configure MTU $($recommendedMtu) on all vMotion/vSAN VMkernels and upstream switches for optimal performance."
         })
     }
 
@@ -102,7 +107,7 @@ function Invoke-NetworkCheck {
             Severity        = "Requirement"
             Score           = 100
             AffectedObjects = @()
-            Description     = "All vMotion/vSAN VMkernel adapters have MTU $($req.recommendedMtu)+ (jumbo frames)."
+            Description     = "All vMotion/vSAN VMkernel adapters have MTU $($recommendedMtu)+ (jumbo frames)."
             Remediation     = "None"
         })
     }
@@ -195,7 +200,7 @@ function Invoke-NetworkCheck {
     $ntpWarnHosts = @()
     foreach ($vmhost in $hosts) {
         if ($vmhost._MockNtpDrift) {
-            if ($vmhost._MockNtpDrift -gt $req.ntpDriftWarnSeconds) {
+            if ($vmhost._MockNtpDrift -gt $ntpDriftWarn) {
                 $ntpWarnHosts += "$($vmhost.Name) (drift: $($vmhost._MockNtpDrift)s)"
             }
         } elseif (-not $VMHosts) {

@@ -7,6 +7,9 @@
     "excludeHosts": [
         "esx-witness01.lab.local"
     ],
+    "excludeDatastorePatterns": [
+        "x_localdisk_*"
+    ],
     "minimumNicCount": 4,
     "minimumRamGB": 256,
     "minimumHostCount": 3

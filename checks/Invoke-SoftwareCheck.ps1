@@ -36,8 +36,15 @@ function Invoke-SoftwareCheck {
         [psobject[]]$MockVMs
     )
 
-    $req = $Requirements.software
+    $req = if ($Requirements) { $Requirements.software } else { $null }
     $results = [System.Collections.Generic.List[psobject]]::new()
+
+    # Safe defaults when Requirements is null
+    $minEsxiVer    = if ($req -and $minEsxiVer)    { $minEsxiVer }    else { "8.0.1" }
+    $minVcVer      = if ($req -and $minVcVer) { $minVcVer } else { "8.0.2" }
+    $toolsMinVer   = if ($req -and $toolsMinVer) { $toolsMinVer } else { "11.0" }
+    $toolsWarnPct  = if ($req -and $toolsWarnPct)    { $toolsWarnPct }    else { 20 }
+    $vcfVer        = if ($Requirements -and $vcfVer) { $vcfVer } else { "9.0.x" }
 
     $hosts = if ($VMHosts) { $VMHosts } else {
         Get-VMHost | Where-Object { $_.Name -notin $Config.excludeHosts }
@@ -72,7 +79,7 @@ function Invoke-SoftwareCheck {
         if ($major -lt 8) {
             # ESXi 7.x or older — no direct path to VCF 9.x
             $blockHosts += "$($vmhost.Name) ($version)"
-        } elseif ((Compare-EsxiVersion $version $req.minimumEsxiVersion) -lt 0) {
+        } elseif ((Compare-EsxiVersion $version $minEsxiVer) -lt 0) {
             # ESXi 8.x but below minimum
             $blockHosts += "$($vmhost.Name) ($version)"
         } else {
@@ -106,8 +113,8 @@ function Invoke-SoftwareCheck {
                 Severity        = "Requirement"
                 Score           = 0
                 AffectedObjects = @($esxi8LowHosts)
-                Description     = "$($esxi8LowHosts.Count) host(s) running ESXi 8.x below minimum $($req.minimumEsxiVersion) for VCF $($Requirements.vcfVersion)."
-                Remediation     = "Upgrade to ESXi $($req.minimumEsxiVersion) or later before VCF migration."
+                Description     = "$($esxi8LowHosts.Count) host(s) running ESXi 8.x below minimum $($minEsxiVer) for VCF $($vcfVer)."
+                Remediation     = "Upgrade to ESXi $($minEsxiVer) or later before VCF migration."
             })
         }
     }
@@ -120,7 +127,7 @@ function Invoke-SoftwareCheck {
             Severity        = "Requirement"
             Score           = 100
             AffectedObjects = @($passHosts)
-            Description     = "$($passHosts.Count) host(s) running compatible ESXi version for VCF $($Requirements.vcfVersion)."
+            Description     = "$($passHosts.Count) host(s) running compatible ESXi version for VCF $($vcfVer)."
             Remediation     = "None"
         })
     }
@@ -146,9 +153,9 @@ function Invoke-SoftwareCheck {
             Score           = 100
             AffectedObjects = @()
             Description     = "Unable to determine vCenter version."
-            Remediation     = "Verify vCenter version manually. VCF $($Requirements.vcfVersion) requires vCenter $($req.minimumVcenterVersion)+."
+            Remediation     = "Verify vCenter version manually. VCF $($vcfVer) requires vCenter $($minVcVer)+."
         })
-    } elseif ((Compare-EsxiVersion $vcVersion $req.minimumVcenterVersion) -lt 0) {
+    } elseif ((Compare-EsxiVersion $vcVersion $minVcVer) -lt 0) {
         $results.Add([PSCustomObject]@{
             Category        = "Software"
             CheckName       = "vCenter Version Check"
@@ -156,8 +163,8 @@ function Invoke-SoftwareCheck {
             Severity        = "Requirement"
             Score           = 0
             AffectedObjects = @("$vcName ($vcVersion)")
-            Description     = "vCenter $vcVersion is below minimum $($req.minimumVcenterVersion) required for VCF $($Requirements.vcfVersion)."
-            Remediation     = "Upgrade vCenter to $($req.minimumVcenterVersion) or later before VCF migration."
+            Description     = "vCenter $vcVersion is below minimum $($minVcVer) required for VCF $($vcfVer)."
+            Remediation     = "Upgrade vCenter to $($minVcVer) or later before VCF migration."
         })
     } else {
         $results.Add([PSCustomObject]@{
@@ -167,7 +174,7 @@ function Invoke-SoftwareCheck {
             Severity        = "Requirement"
             Score           = 100
             AffectedObjects = @("$vcName ($vcVersion)")
-            Description     = "vCenter $vcVersion is compatible with VCF $($Requirements.vcfVersion)."
+            Description     = "vCenter $vcVersion is compatible with VCF $($vcfVer)."
             Remediation     = "None"
         })
     }
@@ -227,19 +234,19 @@ function Invoke-SoftwareCheck {
     if ($vms.Count -gt 0) {
         $outdatedVMs = $vms | Where-Object {
             $_.ToolsVersion -and $_.ToolsVersion -ne '' -and
-            (Compare-EsxiVersion $_.ToolsVersion $req.vmwareToolsMinVersion) -lt 0
+            (Compare-EsxiVersion $_.ToolsVersion $toolsMinVer) -lt 0
         }
         $outdatedPct = [math]::Round(($outdatedVMs.Count / $vms.Count) * 100, 0)
 
-        if ($outdatedPct -gt $req.vmwareToolsWarnPct) {
+        if ($outdatedPct -gt $toolsWarnPct) {
             $results.Add([PSCustomObject]@{
                 Category        = "Software"
                 CheckName       = "VMware Tools Version Audit"
                 Status          = "WARN"
                 Severity        = "BestPractice"
                 Score           = 50
-                AffectedObjects = @("$($outdatedVMs.Count) of $($vms.Count) VMs (${outdatedPct}%) running Tools < $($req.vmwareToolsMinVersion)")
-                Description     = "${outdatedPct}% of VMs have outdated VMware Tools (> $($req.vmwareToolsWarnPct)% threshold)."
+                AffectedObjects = @("$($outdatedVMs.Count) of $($vms.Count) VMs (${outdatedPct}%) running Tools < $($toolsMinVer)")
+                Description     = "${outdatedPct}% of VMs have outdated VMware Tools (> $($toolsWarnPct)% threshold)."
                 Remediation     = "Upgrade VMware Tools on affected VMs using vSphere Update Manager or bulk CLI update."
             })
         } else {
@@ -250,7 +257,7 @@ function Invoke-SoftwareCheck {
                 Severity        = "BestPractice"
                 Score           = 100
                 AffectedObjects = @()
-                Description     = "VMware Tools compliance: ${outdatedPct}% outdated (below $($req.vmwareToolsWarnPct)% threshold)."
+                Description     = "VMware Tools compliance: ${outdatedPct}% outdated (below $($toolsWarnPct)% threshold)."
                 Remediation     = "None"
             })
         }

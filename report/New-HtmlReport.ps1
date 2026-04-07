@@ -91,7 +91,7 @@ function Build-HtmlContent {
 "@
     }
 
-    # Build category detail tables
+    # Build category detail tables with grouping and filters
     $categories = $R.Results | Select-Object -ExpandProperty Category -Unique
     $categoryIcons = @{ Compute="&#9881;"; Storage="&#128190;"; Network="&#127760;"; Software="&#128230;"; Licensing="&#128273;" }
     $categorySections = ""
@@ -99,38 +99,84 @@ function Build-HtmlContent {
     foreach ($cat in $categories) {
         $catResults = $R.Results | Where-Object { $_.Category -eq $cat }
         $icon = if ($categoryIcons[$cat]) { $categoryIcons[$cat] } else { "&#9632;" }
-        $rows = ""
 
-        foreach ($cr in $catResults) {
-            $chipClass = switch ($cr.Status) { "BLOCK"{"chip-block"} "WARN"{"chip-warn"} "PASS"{"chip-pass"} "INFO"{"chip-info"} }
-            $sevLabel = if ($cr.Severity -eq "Requirement") { '<span class="sev sev-req">REQ</span>' } else { '<span class="sev sev-bp">BP</span>' }
-            $objHtml = if ($cr.AffectedObjects.Count -gt 0) {
-                ($cr.AffectedObjects | ForEach-Object { "<span>$([System.Web.HttpUtility]::HtmlEncode($_))</span>" }) -join " "
+        # Group results by CheckName + Status + Description to reduce repetition
+        $grouped = $catResults | Group-Object -Property { "$($_.CheckName)|$($_.Status)|$($_.Severity)|$($_.Description)|$($_.Remediation)" }
+
+        $rows = ""
+        $passCount = 0
+
+        foreach ($group in $grouped) {
+            $first = $group.Group[0]
+            $chipClass = switch ($first.Status) { "BLOCK"{"chip-block"} "WARN"{"chip-warn"} "PASS"{"chip-pass"} "INFO"{"chip-info"} }
+            $sevLabel = if ($first.Severity -eq "Requirement") { '<span class="sev sev-req">REQ</span>' } else { '<span class="sev sev-bp">BP</span>' }
+
+            # Merge all AffectedObjects from group
+            $allObjects = @()
+            foreach ($item in $group.Group) {
+                if ($item.AffectedObjects) { $allObjects += $item.AffectedObjects }
+            }
+            $allObjects = $allObjects | Select-Object -Unique
+
+            $objHtml = if ($allObjects.Count -gt 0) {
+                if ($allObjects.Count -le 5) {
+                    ($allObjects | ForEach-Object { "<span>$([System.Web.HttpUtility]::HtmlEncode($_))</span>" }) -join " "
+                } else {
+                    $shown = ($allObjects[0..2] | ForEach-Object { "<span>$([System.Web.HttpUtility]::HtmlEncode($_))</span>" }) -join " "
+                    "$shown <span style='color:var(--accent-blue)'>+$($allObjects.Count - 3) more</span>"
+                }
             } else { "—" }
 
+            # Count for PASS grouping
+            $isPass = $first.Status -in @("PASS","INFO")
+            if ($isPass) { $passCount += $group.Count }
+
+            $hideClass = if ($isPass) { "row-pass" } else { "" }
+            $hideStyle = if ($isPass) { "display:none" } else { "" }
+
+            # Append count badge if grouped
+            $countBadge = if ($group.Count -gt 1) { " <span style='opacity:.5;font-size:11px'>($($group.Count)x)</span>" } else { "" }
+
             $rows += @"
-      <tr>
-        <td><span class="chip $chipClass">$sevLabel $($cr.Status)</span></td>
-        <td>$([System.Web.HttpUtility]::HtmlEncode($cr.CheckName))</td>
-        <td class="desc">$([System.Web.HttpUtility]::HtmlEncode($cr.Description))</td>
+      <tr class="$hideClass" style="$hideStyle" data-status="$($first.Status)">
+        <td><span class="chip $chipClass">$sevLabel $($first.Status)</span></td>
+        <td>$([System.Web.HttpUtility]::HtmlEncode($first.CheckName))$countBadge</td>
+        <td class="desc">$([System.Web.HttpUtility]::HtmlEncode($first.Description))</td>
         <td class="obj-list">$objHtml</td>
-        <td class="fix">$([System.Web.HttpUtility]::HtmlEncode($cr.Remediation))</td>
+        <td class="fix">$([System.Web.HttpUtility]::HtmlEncode($first.Remediation))</td>
       </tr>
 "@
         }
 
+        # Pass toggle button
+        $passToggle = if ($passCount -gt 0) {
+            "<div class='pass-toggle' onclick='togglePass(this)' style='padding:10px 14px;font-size:12px;color:var(--accent-blue);cursor:pointer;border-top:1px solid var(--border)'>Show $passCount passed/info check(s)</div>"
+        } else { "" }
+
+        # Filter buttons
         $catId = $cat.ToLower()
+        $blockN = ($catResults | Where-Object { $_.Status -eq "BLOCK" }).Count
+        $warnN  = ($catResults | Where-Object { $_.Status -eq "WARN" }).Count
+        $passN  = ($catResults | Where-Object { $_.Status -in @("PASS","INFO") }).Count
+
         $categorySections += @"
 <section id="$catId">
 <div class="container">
   <div class="section-title"><span class="icon">$icon</span> $cat Checks</div>
+  <div class="filter-bar" style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <button class="fbtn active" onclick="filterTable(this,'$catId','ALL')">All ($($catResults.Count))</button>
+    <button class="fbtn" onclick="filterTable(this,'$catId','BLOCK')">Block ($blockN)</button>
+    <button class="fbtn" onclick="filterTable(this,'$catId','WARN')">Warn ($warnN)</button>
+    <button class="fbtn" onclick="filterTable(this,'$catId','PASS')">Pass ($passN)</button>
+  </div>
   <div class="tbl-wrap">
-  <table>
+  <table id="tbl-$catId">
     <thead><tr><th>Status</th><th>Check</th><th>Description</th><th>Affected Objects</th><th>Remediation</th></tr></thead>
     <tbody>
 $rows
     </tbody>
   </table>
+  $passToggle
   </div>
 </div>
 </section>
@@ -276,6 +322,9 @@ td.desc{max-width:380px}td.fix{max-width:340px;color:var(--text-secondary);font-
 .roadmap-tags .tag-cat{color:var(--accent-purple)}
 .legend{display:flex;gap:16px;margin-bottom:16px;font-size:12px;color:var(--text-secondary);flex-wrap:wrap}
 .legend-item{display:flex;align-items:center;gap:6px}
+.fbtn{background:var(--bg-tertiary);color:var(--text-secondary);border:1px solid var(--border);border-radius:6px;padding:4px 12px;font-size:11px;font-family:var(--font-mono);cursor:pointer;transition:all .2s}
+.fbtn:hover{border-color:var(--accent-blue);color:var(--text-primary)}
+.fbtn.active{background:var(--accent-blue);color:#fff;border-color:var(--accent-blue)}
 .footer{border-top:1px solid var(--border);padding:24px 0;font-size:12px;color:var(--text-muted);text-align:center;font-family:var(--font-mono)}
 .footer div+div{margin-top:4px}
 @media print{body{background:#fff;color:#1a1a1a}.nav{display:none}}
@@ -378,11 +427,44 @@ $roadmapHtml
 
 <script>
 (function(){
+  // Nav scroll tracking
   var sections=document.querySelectorAll('section[id]'),navLinks=document.querySelectorAll('.nav a');
   function updateNav(){var c='';sections.forEach(function(s){if(window.scrollY>=s.offsetTop-80)c=s.id});
   navLinks.forEach(function(l){l.classList.toggle('active',l.getAttribute('href')==='#'+c)});}
   window.addEventListener('scroll',updateNav,{passive:true});
 })();
+
+// Filter table rows by status
+function filterTable(btn, catId, status) {
+  var tbl = document.getElementById('tbl-' + catId);
+  if (!tbl) return;
+  var rows = tbl.querySelectorAll('tbody tr');
+  rows.forEach(function(r) {
+    if (status === 'ALL') {
+      r.style.display = '';
+    } else if (status === 'PASS') {
+      r.style.display = (r.dataset.status === 'PASS' || r.dataset.status === 'INFO') ? '' : 'none';
+    } else {
+      r.style.display = r.dataset.status === status ? '' : 'none';
+    }
+  });
+  // Update active button
+  btn.parentElement.querySelectorAll('.fbtn').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+}
+
+// Toggle pass rows visibility
+function togglePass(el) {
+  var tbl = el.previousElementSibling;
+  if (!tbl) return;
+  var rows = tbl.querySelectorAll('.row-pass');
+  var showing = false;
+  rows.forEach(function(r) {
+    if (r.style.display === 'none') { r.style.display = ''; showing = true; }
+    else { r.style.display = 'none'; }
+  });
+  el.textContent = showing ? 'Hide passed/info checks' : el.textContent.replace('Hide','Show');
+}
 </script>
 </body>
 </html>

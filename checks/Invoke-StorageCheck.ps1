@@ -2,16 +2,6 @@ function Invoke-StorageCheck {
     <#
     .SYNOPSIS
         VCF readiness storage checks: datastore capacity, snapshots, boot device, vSAN HCL.
-    .PARAMETER Config
-        Parsed config.json object.
-    .PARAMETER Requirements
-        Parsed VCF version requirement matrix.
-    .PARAMETER MockDatastores
-        Optional mock datastore data for -WhatIf mode.
-    .PARAMETER MockSnapshots
-        Optional mock snapshot data for -WhatIf mode.
-    .PARAMETER VMHosts
-        Optional pre-fetched VMHost list.
     #>
     [CmdletBinding()]
     param(
@@ -31,8 +21,17 @@ function Invoke-StorageCheck {
         [psobject[]]$VMHosts
     )
 
-    $req = $Requirements.storage
+    $req = if ($Requirements) { $Requirements.storage } else { $null }
     $results = [System.Collections.Generic.List[psobject]]::new()
+
+    # Safe defaults when Requirements is null
+    $blockPct      = if ($req -and $req.datastoreUsageBlockPct) { $req.datastoreUsageBlockPct } else { 85 }
+    $warnPct       = if ($req -and $req.datastoreUsageWarnPct)  { $req.datastoreUsageWarnPct }  else { 75 }
+    $snapBlockDays = if ($req -and $req.snapshotBlockDays)      { $req.snapshotBlockDays }      else { 30 }
+    $snapWarnDays  = if ($req -and $req.snapshotWarnDays)       { $req.snapshotWarnDays }       else { 7 }
+
+    # Datastore exclude patterns from config
+    $excludePatterns = if ($Config.excludeDatastorePatterns) { $Config.excludeDatastorePatterns } else { @() }
 
     # ========== CHECK: Datastore Capacity Usage ==========
     Write-Progress -Activity "Storage Checks" -Status "Checking datastore capacity..."
@@ -43,43 +42,73 @@ function Invoke-StorageCheck {
         Get-Datastore | Where-Object { $_.Type -ne 'NFS' -or $Config.storageType -eq 'nfs' }
     }
 
+    # Filter out excluded datastores
+    if ($excludePatterns.Count -gt 0) {
+        $datastores = $datastores | Where-Object {
+            $dsName = $_.Name
+            $excluded = $false
+            foreach ($pattern in $excludePatterns) {
+                if ($dsName -like $pattern) { $excluded = $true; break }
+            }
+            -not $excluded
+        }
+    }
+
+    # Group results: collect all datastores then emit grouped results
+    $dsBlock = @()
+    $dsWarn  = @()
+    $dsPass  = @()
+
     foreach ($ds in $datastores) {
+        if ($ds.CapacityGB -le 0) { continue }
         $usedPct = [math]::Round((1 - ($ds.FreeSpaceGB / $ds.CapacityGB)) * 100, 1)
 
-        if ($usedPct -gt $req.datastoreUsageBlockPct) {
-            $results.Add([PSCustomObject]@{
-                Category        = "Storage"
-                CheckName       = "Datastore Capacity Usage"
-                Status          = "BLOCK"
-                Severity        = "BestPractice"
-                Score           = 0
-                AffectedObjects = @("$($ds.Name): ${usedPct}%")
-                Description     = "Datastore '$($ds.Name)' is at ${usedPct}% capacity (> $($req.datastoreUsageBlockPct)% threshold)."
-                Remediation     = "Free up space or add capacity before VCF migration. Migration requires temporary additional space."
-            })
-        } elseif ($usedPct -gt $req.datastoreUsageWarnPct) {
-            $results.Add([PSCustomObject]@{
-                Category        = "Storage"
-                CheckName       = "Datastore Capacity Usage"
-                Status          = "WARN"
-                Severity        = "BestPractice"
-                Score           = 50
-                AffectedObjects = @("$($ds.Name): ${usedPct}%")
-                Description     = "Datastore '$($ds.Name)' is at ${usedPct}% capacity (> $($req.datastoreUsageWarnPct)% threshold)."
-                Remediation     = "Plan capacity expansion — migration will require additional temporary space."
-            })
+        if ($usedPct -gt $blockPct) {
+            $dsBlock += "$($ds.Name): ${usedPct}%"
+        } elseif ($usedPct -gt $warnPct) {
+            $dsWarn += "$($ds.Name): ${usedPct}%"
         } else {
-            $results.Add([PSCustomObject]@{
-                Category        = "Storage"
-                CheckName       = "Datastore Capacity Usage"
-                Status          = "PASS"
-                Severity        = "BestPractice"
-                Score           = 100
-                AffectedObjects = @("$($ds.Name): ${usedPct}%")
-                Description     = "Datastore '$($ds.Name)' is at ${usedPct}% capacity — healthy."
-                Remediation     = "None"
-            })
+            $dsPass += "$($ds.Name): ${usedPct}%"
         }
+    }
+
+    if ($dsBlock.Count -gt 0) {
+        $results.Add([PSCustomObject]@{
+            Category        = "Storage"
+            CheckName       = "Datastore Capacity Usage"
+            Status          = "BLOCK"
+            Severity        = "BestPractice"
+            Score           = 0
+            AffectedObjects = $dsBlock
+            Description     = "$($dsBlock.Count) datastore(s) above ${blockPct}% capacity threshold."
+            Remediation     = "Free up space or add capacity before VCF migration. Migration requires temporary additional space."
+        })
+    }
+
+    if ($dsWarn.Count -gt 0) {
+        $results.Add([PSCustomObject]@{
+            Category        = "Storage"
+            CheckName       = "Datastore Capacity Usage"
+            Status          = "WARN"
+            Severity        = "BestPractice"
+            Score           = 50
+            AffectedObjects = $dsWarn
+            Description     = "$($dsWarn.Count) datastore(s) between ${warnPct}%-${blockPct}% capacity."
+            Remediation     = "Plan capacity expansion — migration will require additional temporary space."
+        })
+    }
+
+    if ($dsPass.Count -gt 0) {
+        $results.Add([PSCustomObject]@{
+            Category        = "Storage"
+            CheckName       = "Datastore Capacity Usage"
+            Status          = "PASS"
+            Severity        = "BestPractice"
+            Score           = 100
+            AffectedObjects = @("$($dsPass.Count) datastore(s) below ${warnPct}%")
+            Description     = "$($dsPass.Count) datastore(s) have healthy capacity (below ${warnPct}%)."
+            Remediation     = "None"
+        })
     }
 
     # ========== CHECK: Snapshot Age Audit ==========
@@ -98,9 +127,9 @@ function Invoke-StorageCheck {
         $ageDays = ((Get-Date) - $snap.Created).Days
         $sizeGB  = [math]::Round($snap.SizeGB, 1)
 
-        if ($ageDays -gt $req.snapshotBlockDays) {
+        if ($ageDays -gt $snapBlockDays) {
             $blockSnaps += "$($snap.VM) (${ageDays}d, ${sizeGB}GB)"
-        } elseif ($ageDays -gt $req.snapshotWarnDays) {
+        } elseif ($ageDays -gt $snapWarnDays) {
             $warnSnaps += "$($snap.VM) (${ageDays}d, ${sizeGB}GB)"
         }
     }
@@ -113,8 +142,8 @@ function Invoke-StorageCheck {
             Severity        = "BestPractice"
             Score           = 0
             AffectedObjects = $blockSnaps
-            Description     = "$($blockSnaps.Count) VM(s) have snapshots older than $($req.snapshotBlockDays) days. Old snapshots cause performance issues and complicate migration."
-            Remediation     = "Consolidate or delete snapshots older than $($req.snapshotBlockDays) days before migration."
+            Description     = "$($blockSnaps.Count) VM(s) have snapshots older than $snapBlockDays days."
+            Remediation     = "Consolidate or delete snapshots older than $snapBlockDays days before migration."
         })
     }
 
@@ -126,7 +155,7 @@ function Invoke-StorageCheck {
             Severity        = "BestPractice"
             Score           = 50
             AffectedObjects = $warnSnaps
-            Description     = "$($warnSnaps.Count) VM(s) have snapshots between $($req.snapshotWarnDays)-$($req.snapshotBlockDays) days old."
+            Description     = "$($warnSnaps.Count) VM(s) have snapshots between ${snapWarnDays}-${snapBlockDays} days old."
             Remediation     = "Review and consolidate snapshots before migration window."
         })
     }

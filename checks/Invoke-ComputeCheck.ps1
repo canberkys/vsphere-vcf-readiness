@@ -21,8 +21,15 @@ function Invoke-ComputeCheck {
         [psobject[]]$VMHosts
     )
 
-    $req = $Requirements.compute
+    $req = if ($Requirements) { $Requirements.compute } else { $null }
     $results = [System.Collections.Generic.List[psobject]]::new()
+
+    # Safe defaults when Requirements is null
+    $minRamReq  = if ($req -and $req.minimumRamGB_requirement)   { $req.minimumRamGB_requirement }   else { 128 }
+    $minRamBp   = if ($req -and $req.minimumRamGB_bestPractice)  { $req.minimumRamGB_bestPractice }  else { 256 }
+    $minNicReq  = if ($req -and $req.minimumNicCount_requirement)  { $req.minimumNicCount_requirement }  else { 2 }
+    $minNicBp   = if ($req -and $req.minimumNicCount_bestPractice) { $req.minimumNicCount_bestPractice } else { 4 }
+    $minHostCnt = if ($req -and $req.minimumHostCount) { $req.minimumHostCount } else { 3 }
 
     if (-not $VMHosts) {
         $VMHosts = Get-VMHost | Where-Object {
@@ -33,7 +40,7 @@ function Invoke-ComputeCheck {
     $totalHosts = $VMHosts.Count
 
     # ========== CHECK: Host Count ==========
-    $minHosts = if ($Config.minimumHostCount) { $Config.minimumHostCount } else { $req.minimumHostCount }
+    $minHosts = if ($Config.minimumHostCount) { $Config.minimumHostCount } else { $minHostCnt }
     $isVsan   = $Config.storageType -match '^vsan'
 
     if ($isVsan -and $totalHosts -lt $minHosts) {
@@ -157,8 +164,7 @@ function Invoke-ComputeCheck {
             (Get-VMHostNetworkAdapter -VMHost $vmhost -Physical | Measure-Object).Count
         }
 
-        $minNicReq = $req.minimumNicCount_requirement   # 2
-        $minNicBp  = $req.minimumNicCount_bestPractice   # 4
+        # $minNicReq and $minNicBp set at function top with safe defaults
 
         if ($nicCount -lt $minNicReq) {
             $results.Add([PSCustomObject]@{
@@ -196,9 +202,8 @@ function Invoke-ComputeCheck {
         }
 
         # --- RAM ---
-        $ramGB   = [math]::Round($vmhost.MemoryTotalGB, 0)
-        $minRamReq = $req.minimumRamGB_requirement    # 128
-        $minRamBp  = $req.minimumRamGB_bestPractice   # 256
+        $ramGB = [math]::Round($vmhost.MemoryTotalGB, 0)
+        # $minRamReq and $minRamBp set at function top with safe defaults
 
         if ($ramGB -lt $minRamReq) {
             $results.Add([PSCustomObject]@{

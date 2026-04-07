@@ -26,8 +26,13 @@ function Invoke-LicensingCheck {
         [psobject[]]$MockLicenses
     )
 
-    $req = $Requirements.licensing
+    $req = if ($Requirements) { $Requirements.licensing } else { $null }
     $results = [System.Collections.Generic.List[psobject]]::new()
+
+    # Safe defaults when Requirements is null
+    $coreMinPerSocket = if ($req -and $coreMinPerSocket) { $coreMinPerSocket } else { 16 }
+    $vsanTibPerCore   = if ($req -and $vsanTibPerCore)   { $vsanTibPerCore }   else { 1 }
+    $vcfVer           = if ($Requirements -and $vcfVer) { $vcfVer } else { "9.0.x" }
 
     $hosts = if ($VMHosts) { $VMHosts } else {
         Get-VMHost | Where-Object { $_.Name -notin $Config.excludeHosts }
@@ -49,7 +54,7 @@ function Invoke-LicensingCheck {
             } catch { 16 }
         }
 
-        $licensedCores = [math]::Max($coresPerSocket, $req.coreMinPerSocket) * $sockets
+        $licensedCores = [math]::Max($coresPerSocket, $coreMinPerSocket) * $sockets
         $totalCores   += $licensedCores
         $totalSockets += $sockets
     }
@@ -61,8 +66,8 @@ function Invoke-LicensingCheck {
         Severity        = "Requirement"
         Score           = 100
         AffectedObjects = @()
-        Description     = "Total licensable cores: $totalCores across $($hosts.Count) hosts ($totalSockets sockets). Formula: max(actual_cores, $($req.coreMinPerSocket)) x sockets per host."
-        Remediation     = "Contact VMware/Broadcom sales for VCF $($Requirements.vcfVersion) core-based licensing quote. See KB 313548."
+        Description     = "Total licensable cores: $totalCores across $($hosts.Count) hosts ($totalSockets sockets). Formula: max(actual_cores, $($coreMinPerSocket)) x sockets per host."
+        Remediation     = "Contact VMware/Broadcom sales for VCF $($vcfVer) core-based licensing quote. See KB 313548."
     })
 
     # ========== CHECK: Current License Expiry ==========
@@ -153,7 +158,7 @@ function Invoke-LicensingCheck {
             } catch {}
         }
 
-        $entitlementTiB = $totalCores * $req.vsanTibPerCore
+        $entitlementTiB = $totalCores * $vsanTibPerCore
 
         $results.Add([PSCustomObject]@{
             Category        = "Licensing"
@@ -161,7 +166,7 @@ function Invoke-LicensingCheck {
             Status          = "INFO"
             Severity        = "BestPractice"
             Score           = 100
-            AffectedObjects = @("Current usage: $vsanUsageTiB TiB", "VCF entitlement: $entitlementTiB TiB ($($req.vsanTibPerCore) TiB/core x $totalCores cores)")
+            AffectedObjects = @("Current usage: $vsanUsageTiB TiB", "VCF entitlement: $entitlementTiB TiB ($($vsanTibPerCore) TiB/core x $totalCores cores)")
             Description     = if ($vsanUsageTiB -le $entitlementTiB) {
                 "Current vSAN capacity ($vsanUsageTiB TiB) is within VCF included entitlement ($entitlementTiB TiB)."
             } else {
