@@ -60,7 +60,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 }
 
 $ErrorActionPreference = "Stop"
-$script:ToolVersion = "0.5.0"
+$script:ToolVersion = "0.6.0"
 $script:CredentialFile = Join-Path $HOME ".vcf-readiness-cred.xml"
 
 # Resolve script root reliably (handles interactive/dot-source/double-click cases)
@@ -226,8 +226,10 @@ function New-MockHosts {
         $prefix = switch ($i) { {$_ -le 5}{"prod"} {$_ -in 6,7}{"mgmt"} default{"edge"} }
         $num = switch ($i) { {$_ -le 5}{$i+1} {$_ -eq 6}{1} {$_ -eq 7}{2} {$_ -eq 8}{1} {$_ -eq 9}{2} }
 
+        $cluster = switch ($prefix) { "prod"{"Cluster-Prod"} "mgmt"{"Cluster-Mgmt"} "edge"{"Cluster-Edge"} }
         [PSCustomObject]@{
             Name            = "esx-${prefix}{0:D2}.megacorp.local" -f $num
+            Cluster         = $cluster
             ProcessorType   = $cpuModels[$i]
             CpuModel        = $cpuModels[$i]
             MemoryTotalGB   = $ramOptions[$i]
@@ -516,8 +518,10 @@ $hostInventory = if ($WhatIfPreference) {
             $sockets    = try { $_.ExtensionData.Hardware.CpuInfo.NumCpuPackages } catch { 0 }
             $coresTotal = try { $_.ExtensionData.Hardware.CpuInfo.NumCpuCores } catch { 0 }
             $coresPerS  = if ($sockets -gt 0) { [math]::Floor($coresTotal / $sockets) } else { 0 }
+            $clusterName = try { (Get-Cluster -VMHost $_).Name } catch { "Unknown" }
             [PSCustomObject]@{
                 Name           = $_.Name
+                Cluster        = $clusterName
                 Version        = $_.Version
                 Build          = $_.Build
                 ProcessorType  = $_.ProcessorType
