@@ -2,3 +2,4 @@
 *.log
 TestResults/
 *.vcf-readiness-cred.xml
+output/
