@@ -101,7 +101,7 @@ function Invoke-SoftwareCheck {
                 Score           = 0
                 AffectedObjects = @($esxi7Hosts)
                 Description     = "$($esxi7Hosts.Count) host(s) running ESXi 7.x. There is NO direct upgrade path from ESXi 7.x to VCF 9.x."
-                Remediation     = "Upgrade path: ESXi 7.x -> ESXi 8.0 U2+ -> VCF 9.x. Plan a two-stage upgrade."
+                Remediation     = "Upgrade path: ESXi 7.x -> ESXi 8.0 U2+ -> VCF 9.x. Plan a two-stage upgrade. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
             })
         }
 
@@ -114,7 +114,7 @@ function Invoke-SoftwareCheck {
                 Score           = 0
                 AffectedObjects = @($esxi8LowHosts)
                 Description     = "$($esxi8LowHosts.Count) host(s) running ESXi 8.x below minimum $($minEsxiVer) for VCF $($vcfVer)."
-                Remediation     = "Upgrade to ESXi $($minEsxiVer) or later before VCF migration."
+                Remediation     = "Upgrade to ESXi $($minEsxiVer) or later before VCF migration. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
             })
         }
     }
@@ -164,7 +164,7 @@ function Invoke-SoftwareCheck {
             Score           = 0
             AffectedObjects = @("$vcName ($vcVersion)")
             Description     = "vCenter $vcVersion is below minimum $($minVcVer) required for VCF $($vcfVer)."
-            Remediation     = "Upgrade vCenter to $($minVcVer) or later before VCF migration."
+            Remediation     = "Upgrade vCenter to $($minVcVer) or later before VCF migration. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
         })
     } else {
         $results.Add([PSCustomObject]@{
@@ -209,7 +209,7 @@ function Invoke-SoftwareCheck {
             Score           = 50
             AffectedObjects = @($baselineClusters.Name)
             Description     = "$($baselineClusters.Count) cluster(s) using baseline-based lifecycle management. VCF 9.x requires vLCM image-based management."
-            Remediation     = "Convert clusters from baseline to vLCM image-based management before VCF onboarding. See KB 322186."
+            Remediation     = "Convert clusters from baseline to vLCM image-based management before VCF onboarding. https://knowledge.broadcom.com/external/article/322186"
         })
     } elseif ($clusters.Count -gt 0) {
         $results.Add([PSCustomObject]@{

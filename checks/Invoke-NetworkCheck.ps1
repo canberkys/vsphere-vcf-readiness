@@ -82,7 +82,7 @@ function Invoke-NetworkCheck {
             Score           = 0
             AffectedObjects = $mtuBlockList
             Description     = "$($mtuBlockList.Count) VMkernel adapter(s) have MTU below $($nsxMinMtu). NSX overlay transport requires minimum MTU $($nsxMinMtu)."
-            Remediation     = "Configure MTU $($nsxMinMtu)+ on vMotion/vSAN/overlay VMkernels and upstream physical switches."
+            Remediation     = "Configure MTU $($nsxMinMtu)+ on vMotion/vSAN/overlay VMkernels and upstream physical switches. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
         })
     }
 
@@ -95,7 +95,7 @@ function Invoke-NetworkCheck {
             Score           = 50
             AffectedObjects = $mtuWarnList
             Description     = "$($mtuWarnList.Count) VMkernel adapter(s) have MTU below recommended $($recommendedMtu). Jumbo frames improve vMotion/vSAN performance."
-            Remediation     = "Configure MTU $($recommendedMtu) on all vMotion/vSAN VMkernels and upstream switches for optimal performance."
+            Remediation     = "Configure MTU $($recommendedMtu) on all vMotion/vSAN VMkernels and upstream switches for optimal performance. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
         })
     }
 
@@ -138,7 +138,7 @@ function Invoke-NetworkCheck {
             Score           = 0
             AffectedObjects = $dnsFailHosts
             Description     = "$($dnsFailHosts.Count) host(s) fail DNS forward resolution. VCF SDDC Manager requires DNS for all components."
-            Remediation     = "Create A records for all ESXi hosts, vCenter, NSX, and SDDC Manager in your DNS zone."
+            Remediation     = "Create A records for all ESXi hosts, vCenter, NSX, and SDDC Manager in your DNS zone. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
         })
     } else {
         $results.Add([PSCustomObject]@{
@@ -179,7 +179,7 @@ function Invoke-NetworkCheck {
             Score           = 50
             AffectedObjects = $ptrMissing
             Description     = "$($ptrMissing.Count) host(s) missing PTR records. VCF SDDC Manager validates forward and reverse DNS."
-            Remediation     = "Create PTR records for all ESXi host management IPs in your reverse DNS zone."
+            Remediation     = "Create PTR records for all ESXi host management IPs in your reverse DNS zone. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
         })
     } else {
         $results.Add([PSCustomObject]@{

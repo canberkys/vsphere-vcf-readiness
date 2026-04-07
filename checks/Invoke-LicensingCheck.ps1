@@ -67,7 +67,7 @@ function Invoke-LicensingCheck {
         Score           = 100
         AffectedObjects = @()
         Description     = "Total licensable cores: $totalCores across $($hosts.Count) hosts ($totalSockets sockets). Formula: max(actual_cores, $($coreMinPerSocket)) x sockets per host."
-        Remediation     = "Contact VMware/Broadcom sales for VCF $($vcfVer) core-based licensing quote. See KB 313548."
+        Remediation     = "Contact VMware/Broadcom sales for VCF $($vcfVer) core-based licensing quote. https://knowledge.broadcom.com/external/article/313548"
     })
 
     # ========== CHECK: Current License Expiry ==========
@@ -111,7 +111,7 @@ function Invoke-LicensingCheck {
             Score           = 0
             AffectedObjects = $expiringLicenses
             Description     = "$($expiringLicenses.Count) license(s) expiring within 90 days or already expired. VCF migration requires valid licensing."
-            Remediation     = "Coordinate with procurement: complete VCF migration (includes new licenses) or renew existing licenses as a bridge."
+            Remediation     = "Coordinate with procurement: complete VCF migration (includes new licenses) or renew existing licenses as a bridge. https://knowledge.broadcom.com/external/article/313548"
         })
     } elseif ($licenses.Count -gt 0) {
         $results.Add([PSCustomObject]@{

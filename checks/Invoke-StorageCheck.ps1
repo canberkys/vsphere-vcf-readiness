@@ -81,7 +81,7 @@ function Invoke-StorageCheck {
             Score           = 0
             AffectedObjects = $dsBlock
             Description     = "$($dsBlock.Count) datastore(s) above ${blockPct}% capacity threshold."
-            Remediation     = "Free up space or add capacity before VCF migration. Migration requires temporary additional space."
+            Remediation     = "Free up space or add capacity before VCF migration. Migration requires temporary additional space. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
         })
     }
 
@@ -206,7 +206,7 @@ function Invoke-StorageCheck {
             Score           = 50
             AffectedObjects = $usbBootHosts
             Description     = "$($usbBootHosts.Count) host(s) boot from USB/SD device. VCF 9.x deprecates USB/SD boot for ESX-OSData."
-            Remediation     = "Migrate boot device to M.2 BOSS, SSD, or NVMe (min 32GB, recommended 128GB). See KB 317631."
+            Remediation     = "Migrate boot device to M.2 BOSS, SSD, or NVMe (min 32GB, recommended 128GB). https://knowledge.broadcom.com/external/article/317631"
         })
     } else {
         $results.Add([PSCustomObject]@{

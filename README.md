@@ -14,29 +14,54 @@ VCF Import Tool only validates brownfield import. VCF Diagnostic Tool (VDT) is f
 
 ## Quick Start
 
-```powershell
-# Install PowerCLI
-Install-Module VMware.PowerCLI -Scope CurrentUser -AllowClobber
+### 1. Install Prerequisites
 
-# Clone the repo
+```powershell
+# PowerShell 7.2+ required (script auto-relaunches if opened with PS 5.1)
+# Download: https://github.com/PowerShell/PowerShell
+
+# Install VMware PowerCLI
+Install-Module VMware.PowerCLI -Scope CurrentUser -AllowClobber
+```
+
+### 2. Download the Tool
+
+```powershell
 git clone https://github.com/canberkys/vsphere-vcf-readiness.git
 cd vsphere-vcf-readiness
+```
 
-# Edit config.json — set vcenterServer to your vCenter FQDN
-code config.json
+### 3. Configure
 
-# Just run it — reads vCenter from config, handles credential automatically
+Edit `config.json` with your environment details:
+
+```json
+{
+    "vcenterServer": "vcsa.corp.local",
+    "targetVcfVersion": "9.0.1",
+    "storageType": "vsan-esa",
+    "excludeHosts": ["esx-witness01.corp.local"],
+    "excludeDatastorePatterns": ["x_localdisk_*"]
+}
+```
+
+### 4. Run
+
+```powershell
+# Simplest — vCenter from config, credential prompted (saved for next time)
 .\vsphere-vcf-readiness.ps1
 
-# Or specify everything via parameters
-.\vsphere-vcf-readiness.ps1 -VCenterServer vcsa.lab.local -Credential (Get-Credential)
+# Explicit parameters
+.\vsphere-vcf-readiness.ps1 -VCenterServer vcsa.corp.local -Credential (Get-Credential)
 
-# WhatIf mode — mock data, no vCenter connection needed
+# Test without vCenter (mock data)
 .\vsphere-vcf-readiness.ps1 -WhatIf
 
-# Export all report formats (HTML + JSON + CSV)
-.\vsphere-vcf-readiness.ps1 -WhatIf -ReportFormat All
+# Export all formats (HTML + JSON + CSV)
+.\vsphere-vcf-readiness.ps1 -ReportFormat All
 ```
+
+The HTML report opens automatically in your browser when the assessment completes.
 
 ## Credential Management
 

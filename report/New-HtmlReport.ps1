@@ -52,6 +52,12 @@ function New-HtmlReport {
 function Build-HtmlContent {
     param([psobject]$R)
 
+    # Helper: convert URLs in text to clickable links
+    function ConvertTo-LinkedHtml([string]$text) {
+        $encoded = [System.Web.HttpUtility]::HtmlEncode($text)
+        $encoded -replace '(https?://[^\s&lt;]+)', '<a href="$1" target="_blank" style="color:var(--accent-blue)">$1</a>'
+    }
+
     $score    = $R.Score
     $vcenter  = $R.VCenter
     $vcVer    = $R.VCenterVersion
@@ -132,7 +138,7 @@ function Build-HtmlContent {
         <td class="td-check">$([System.Web.HttpUtility]::HtmlEncode($first.CheckName))$countBadge</td>
         <td class="td-desc">$([System.Web.HttpUtility]::HtmlEncode($first.Description))</td>
         <td class="td-obj">$objHtml</td>
-        <td class="td-fix">$([System.Web.HttpUtility]::HtmlEncode($first.Remediation))</td>
+        <td class="td-fix">$(ConvertTo-LinkedHtml $first.Remediation)</td>
       </tr>
 "@
         }

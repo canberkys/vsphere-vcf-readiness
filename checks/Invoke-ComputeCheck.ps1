@@ -137,13 +137,13 @@ function Invoke-ComputeCheck {
             $cpuSeverity    = "Requirement"
             $cpuScore       = 0
             $cpuDescription = "CPU ($cpuModel) is Haswell/Broadwell/Skylake era — discontinued for VCF 9.x. Installation is blocked."
-            $cpuRemediation = "Replace host hardware with Ice Lake (3rd Gen Scalable) or newer CPUs. See Broadcom KB 318697."
+            $cpuRemediation = "Replace host hardware with Ice Lake (3rd Gen Scalable) or newer CPUs. https://knowledge.broadcom.com/external/article/318697"
         } elseif ($isCascade) {
             $cpuStatus      = "WARN"
             $cpuSeverity    = "BestPractice"
             $cpuScore       = 50
             $cpuDescription = "CPU ($cpuModel) is Cascade Lake — deprecated for VCF 9.x. Supported but nearing end of general support."
-            $cpuRemediation = "Plan hardware refresh to Ice Lake+ within next upgrade cycle. Cascade Lake is fully functional including vSAN ESA."
+            $cpuRemediation = "Plan hardware refresh to Ice Lake+ within next upgrade cycle. Cascade Lake is fully functional including vSAN ESA. https://knowledge.broadcom.com/external/article/318697"
         }
 
         $results.Add([PSCustomObject]@{
@@ -175,7 +175,7 @@ function Invoke-ComputeCheck {
                 Score           = 0
                 AffectedObjects = @($vmhost.Name)
                 Description     = "Host $($vmhost.Name) has $nicCount physical NIC(s). VCF requires minimum $minNicReq x 10GbE."
-                Remediation     = "Add 10GbE or faster NICs. VCF requires at least $minNicReq physical NICs."
+                Remediation     = "Add 10GbE or faster NICs. VCF requires at least $minNicReq physical NICs. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
             })
         } elseif ($nicCount -lt $minNicBp) {
             $results.Add([PSCustomObject]@{
@@ -186,7 +186,7 @@ function Invoke-ComputeCheck {
                 Score           = 50
                 AffectedObjects = @($vmhost.Name)
                 Description     = "Host $($vmhost.Name) has $nicCount physical NIC(s). Best practice: ${minNicBp}+ for traffic separation."
-                Remediation     = "Consider adding NICs for dedicated vMotion, vSAN, and NSX overlay traffic."
+                Remediation     = "Consider adding NICs for dedicated vMotion, vSAN, and NSX overlay traffic. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
             })
         } else {
             $results.Add([PSCustomObject]@{
@@ -214,7 +214,7 @@ function Invoke-ComputeCheck {
                 Score           = 0
                 AffectedObjects = @($vmhost.Name)
                 Description     = "Host $($vmhost.Name) has ${ramGB}GB RAM. VCF/vSAN ESA requires minimum ${minRamReq}GB."
-                Remediation     = "Upgrade RAM to at least ${minRamReq}GB (requirement). ${minRamBp}GB+ recommended for production."
+                Remediation     = "Upgrade RAM to at least ${minRamReq}GB (requirement). ${minRamBp}GB+ recommended for production. https://techdocs.broadcom.com/us/en/vmware-cis/vcf/vcf-9-0-and-later/9-0"
             })
         } elseif ($ramGB -lt $minRamBp) {
             $results.Add([PSCustomObject]@{
