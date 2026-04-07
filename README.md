@@ -39,6 +39,9 @@ code config.json
 
 | Key | Description | Values |
 |-----|-------------|--------|
+| `vcenterServer` | vCenter FQDN/IP (used if `-VCenterServer` param not given) | `"vcsa.lab.local"` |
+| `savedCredential` | Load credential from store instead of prompting | `true` / `false` |
+| `credentialTarget` | Credential store entry name | `"vsphere-vcf-readiness"` |
 | `targetVcfVersion` | Target VCF version | `"9.0.0"`, `"9.0.1"` |
 | `storageType` | Storage architecture | `"vsan-osa"`, `"vsan-esa"`, `"fc-vmfs"`, `"nfs"` |
 | `vcfAutomationRequired` | Include automation checks | `true` / `false` |

@@ -17,6 +17,9 @@
 .PARAMETER WhatIf
     Run with mock data — no vCenter connection required.
 .EXAMPLE
+    .\vsphere-vcf-readiness.ps1
+    # Uses vcenterServer from config.json, prompts for credential
+.EXAMPLE
     .\vsphere-vcf-readiness.ps1 -VCenterServer vcsa.lab.local -Credential (Get-Credential)
 .EXAMPLE
     .\vsphere-vcf-readiness.ps1 -WhatIf
@@ -43,7 +46,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$script:ToolVersion = "0.2.0"
+$script:ToolVersion = "0.3.0"
 
 # Resolve script root reliably (handles interactive/dot-source cases)
 if (-not $PSScriptRoot) {
@@ -76,6 +79,44 @@ if (-not (Test-Path $ConfigFile)) {
 }
 $config = Get-Content $ConfigFile -Raw | ConvertFrom-Json
 Write-Host "[*] Config loaded: VCF target $($config.targetVcfVersion), storage: $($config.storageType)" -ForegroundColor Green
+
+# ── Resolve vCenter Server ──
+if (-not $VCenterServer -and $config.vcenterServer) {
+    $VCenterServer = $config.vcenterServer
+    Write-Host "[*] vCenter from config: $VCenterServer" -ForegroundColor DarkGray
+}
+
+# ── Resolve Credential ──
+if (-not $Credential -and -not $WhatIfPreference) {
+    if ($config.savedCredential -eq $true) {
+        $credTarget = if ($config.credentialTarget) { $config.credentialTarget } else { "vsphere-vcf-readiness" }
+        try {
+            # Try CredentialManager module (Windows)
+            if (Get-Command Get-StoredCredential -ErrorAction SilentlyContinue) {
+                $Credential = Get-StoredCredential -Target $credTarget
+                if ($Credential) {
+                    Write-Host "[*] Credential loaded from Credential Manager: $credTarget" -ForegroundColor DarkGray
+                }
+            }
+            # Try SecretManagement module (cross-platform)
+            if (-not $Credential -and (Get-Command Get-Secret -ErrorAction SilentlyContinue)) {
+                $Credential = Get-Secret -Name $credTarget -ErrorAction SilentlyContinue
+                if ($Credential) {
+                    Write-Host "[*] Credential loaded from SecretManagement: $credTarget" -ForegroundColor DarkGray
+                }
+            }
+            if (-not $Credential) {
+                Write-Warning "savedCredential is true but no credential found for '$credTarget'. Prompting..."
+                $Credential = Get-Credential -Message "Enter vCenter credentials for $VCenterServer"
+            }
+        } catch {
+            Write-Warning "Failed to load stored credential: $_. Prompting..."
+            $Credential = Get-Credential -Message "Enter vCenter credentials for $VCenterServer"
+        }
+    } elseif ($VCenterServer) {
+        $Credential = Get-Credential -Message "Enter vCenter credentials for $VCenterServer"
+    }
+}
 
 # ── Load Requirements Matrix ──
 $reqFile = Join-Path $PSScriptRoot "checks" "requirements" "vcf-$($config.targetVcfVersion).json"
@@ -270,7 +311,7 @@ if ($WhatIfPreference) {
 } else {
     # ── Real connection ──
     if (-not $VCenterServer) {
-        Write-Error "VCenterServer is required when not using -WhatIf."
+        Write-Error "VCenterServer is required. Set it via -VCenterServer parameter or vcenterServer in config.json."
         return
     }
 
