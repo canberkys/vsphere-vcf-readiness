@@ -25,20 +25,6 @@
 .EXAMPLE
     .\vsphere-vcf-readiness.ps1 -WhatIf
 #>
-
-# ── PS 5.1 re-launch guard: if opened with Windows PowerShell, restart in pwsh ──
-if ($PSVersionTable.PSVersion.Major -lt 7) {
-    if (Get-Command pwsh -ErrorAction SilentlyContinue) {
-        Write-Host "Relaunching in PowerShell 7..." -ForegroundColor Yellow
-        Start-Process pwsh -ArgumentList "-File `"$PSCommandPath`"" -NoNewWindow -Wait
-        exit
-    } else {
-        Write-Error "PowerShell 7.2+ is required. Install from https://github.com/PowerShell/PowerShell"
-        Read-Host "Press Enter to exit"
-        exit 1
-    }
-}
-
 #Requires -Version 7.2
 
 [CmdletBinding(SupportsShouldProcess)]
@@ -59,6 +45,19 @@ param(
     [ValidateSet("HTML","JSON","CSV","All")]
     [string]$ReportFormat = "HTML"
 )
+
+# ── PS 5.1 re-launch guard: if opened with Windows PowerShell, restart in pwsh ──
+if ($PSVersionTable.PSVersion.Major -lt 7) {
+    if (Get-Command pwsh -ErrorAction SilentlyContinue) {
+        Write-Host "Relaunching in PowerShell 7..." -ForegroundColor Yellow
+        Start-Process pwsh -ArgumentList "-File `"$PSCommandPath`"" -NoNewWindow -Wait
+        exit
+    } else {
+        Write-Error "PowerShell 7.2+ is required. Install from https://github.com/PowerShell/PowerShell"
+        Read-Host "Press Enter to exit"
+        exit 1
+    }
+}
 
 $ErrorActionPreference = "Stop"
 $script:ToolVersion = "0.4.0"
