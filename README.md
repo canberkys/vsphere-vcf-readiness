@@ -148,7 +148,9 @@ Reports are generated in `output/` directory and automatically opened in browser
 
 ### Sample Report
 
-An example HTML report is included in [`output/vcf-readiness-report_example.html`](output/vcf-readiness-report_example.html) — open it in any browser to see the full assessment layout with 10 mock hosts, 42 checks, and a prioritized remediation roadmap.
+**[View Live Demo](https://canberkys.github.io/vsphere-vcf-readiness/)** — example report with 16 mock hosts, 50 checks, and all UI features (expandable objects, filter buttons, score animation, remediation roadmap with KB links).
+
+The report source is also available at [`output/vcf-readiness-report_example.html`](output/vcf-readiness-report_example.html).
 
 ## Data Sources
 
