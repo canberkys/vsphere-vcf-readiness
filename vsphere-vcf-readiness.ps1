@@ -45,6 +45,22 @@ param(
 $ErrorActionPreference = "Stop"
 $script:ToolVersion = "0.2.0"
 
+# Resolve script root reliably (handles interactive/dot-source cases)
+if (-not $PSScriptRoot) {
+    $PSScriptRoot = Split-Path -Parent (Resolve-Path $MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue) -ErrorAction SilentlyContinue
+}
+if (-not $PSScriptRoot) {
+    $PSScriptRoot = $PWD.Path
+}
+
+# Fix param defaults if PSScriptRoot was empty at parse time
+if (-not $ConfigFile -or -not (Test-Path $ConfigFile)) {
+    $ConfigFile = Join-Path $PSScriptRoot "config.json"
+}
+if (-not $OutputPath) {
+    $OutputPath = Join-Path $PSScriptRoot "output"
+}
+
 # ── Banner ──
 Write-Host ""
 Write-Host "  ╔══════════════════════════════════════════════════╗" -ForegroundColor Cyan
