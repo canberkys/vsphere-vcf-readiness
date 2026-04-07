@@ -60,7 +60,7 @@ if ($PSVersionTable.PSVersion.Major -lt 7) {
 }
 
 $ErrorActionPreference = "Stop"
-$script:ToolVersion = "0.4.0"
+$script:ToolVersion = "0.4.2"
 $script:CredentialFile = Join-Path $HOME ".vcf-readiness-cred.xml"
 
 # Resolve script root reliably (handles interactive/dot-source/double-click cases)
@@ -100,11 +100,25 @@ Write-Host "[*] Config loaded: VCF target $($config.targetVcfVersion), storage: 
 # ══════════════════════════════════════════════════════════════
 
 if (-not $VCenterServer -and -not $WhatIfPreference) {
-    if ($config.vcenterServer) {
-        $VCenterServer = $config.vcenterServer
-        Write-Host "[*] vCenter from config: $VCenterServer" -ForegroundColor DarkGray
+    $configDefault = if ($config.vcenterServer) { $config.vcenterServer } else { $null }
+
+    if ($configDefault) {
+        $input = Read-Host "  [?] vCenter Server address (Enter for $configDefault)"
+        $VCenterServer = if ($input.Trim()) { $input.Trim() } else { $configDefault }
     } else {
-        $VCenterServer = Read-Host "  vCenter Server address"
+        $VCenterServer = Read-Host "  [?] vCenter Server address"
+    }
+
+    Write-Host "[*] vCenter: $VCenterServer" -ForegroundColor Green
+
+    # Offer to save to config if entered a new/different value
+    if ($VCenterServer -ne $configDefault) {
+        $saveVc = Read-Host "  [?] Save to config.json? [Y/N]"
+        if ($saveVc -match '^[Yy]') {
+            $config.vcenterServer = $VCenterServer
+            $config | ConvertTo-Json -Depth 10 | Set-Content -Path $ConfigFile -Encoding UTF8
+            Write-Host "[*] config.json updated: vcenterServer = $VCenterServer" -ForegroundColor Green
+        }
     }
 }
 
