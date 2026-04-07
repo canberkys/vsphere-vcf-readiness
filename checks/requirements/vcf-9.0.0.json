@@ -1,0 +1,37 @@
+{
+    "vcfVersion": "9.0.0",
+    "compute": {
+        "blockedCpuGenerations": ["Haswell", "Broadwell", "Skylake"],
+        "deprecatedCpuGenerations": ["Cascade Lake"],
+        "minimumRamGB_requirement": 128,
+        "minimumRamGB_bestPractice": 256,
+        "minimumNicCount_requirement": 2,
+        "minimumNicCount_bestPractice": 4,
+        "minimumNicSpeedGbps": 10,
+        "minimumHostCount": 3
+    },
+    "storage": {
+        "datastoreUsageWarnPct": 75,
+        "datastoreUsageBlockPct": 85,
+        "snapshotWarnDays": 7,
+        "snapshotBlockDays": 30,
+        "usbBootDeprecated": true
+    },
+    "network": {
+        "nsxOverlayMinMtu": 1600,
+        "recommendedMtu": 9000,
+        "ntpDriftWarnSeconds": 5
+    },
+    "software": {
+        "minimumEsxiVersion": "8.0.0",
+        "supportedEsxiMajor": [8],
+        "minimumVcenterVersion": "8.0.2",
+        "vlcmImageRequired": true,
+        "vmwareToolsMinVersion": "11.0",
+        "vmwareToolsWarnPct": 20
+    },
+    "licensing": {
+        "coreMinPerSocket": 16,
+        "vsanTibPerCore": 1
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "targetVcfVersion": "9.0.1",
+    "storageType": "vsan-esa",
+    "vcfAutomationRequired": true,
+    "checkHcl": false,
+    "excludeHosts": [
+        "esx-witness01.lab.local"
+    ],
+    "minimumNicCount": 4,
+    "minimumRamGB": 256,
+    "minimumHostCount": 3
+}
