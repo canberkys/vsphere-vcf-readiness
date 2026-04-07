@@ -199,6 +199,13 @@ All thresholds are driven by version-specific requirement matrices (`checks/requ
 
 ## Changelog
 
+### v0.6.0
+- **feat:** Cluster-based host grouping - hosts displayed under cluster headers with status indicators
+- **feat:** Executive Summary - print-friendly overview with score, top 3 blockers, environment info
+- **feat:** Dark/Light theme toggle button in header
+- **feat:** Save as PDF button (browser print with optimized CSS, zero dependency)
+- **feat:** Cluster data collected in both real mode (Get-Cluster) and WhatIf mock
+
 ### v0.5.2
 - **feat:** Clickable Broadcom KB links in all BLOCK/WARN remediation text
 - **feat:** GitHub Pages live demo - example report viewable in browser
